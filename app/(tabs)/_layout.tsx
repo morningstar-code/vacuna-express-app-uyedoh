@@ -63,20 +63,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="education"
+        name="promotions"
         options={{
-          title: 'Educación',
+          title: 'Ofertas',
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol size={28} name={focused ? 'book.fill' : 'book'} color={color} />
+            <IconSymbol size={28} name={focused ? 'tag.fill' : 'tag'} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="notifications"
+        name="profile"
         options={{
-          title: 'Notificaciones',
+          title: 'Perfil',
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol size={28} name={focused ? 'bell.fill' : 'bell'} color={color} />
+            <IconSymbol size={28} name={focused ? 'person.fill' : 'person'} color={color} />
           ),
         }}
       />

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   View,
@@ -9,7 +10,7 @@ import {
   Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, commonStyles } from '@/styles/commonStyles';
+import { colors, commonStyles, spacing, borderRadius, typography } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { router } from 'expo-router';
 
@@ -20,11 +21,12 @@ export default function ProfileScreen() {
 
   // Sample user data
   const userData = {
-    name: 'Juan Pérez',
+    name: 'Dr. Juan Pérez',
     email: 'juan.perez@email.com',
     phone: '+1 (809) 555-0123',
     rnc: '123456789',
     cedula: '001-1234567-8',
+    centerName: 'Clínica San Rafael',
     address: 'Av. Winston Churchill, Santo Domingo',
     loyaltyPoints: 1250,
     tier: 'Gold',
@@ -32,6 +34,7 @@ export default function ProfileScreen() {
     totalSpent: 2450.00,
   };
 
+  // Clean profile sections - only relevant for doctor/client
   const profileSections = [
     {
       title: 'Información Personal',
@@ -39,7 +42,7 @@ export default function ProfileScreen() {
         { label: 'Editar Perfil', icon: 'person.fill', action: () => console.log('Edit profile') },
         { label: 'Información de Contacto', icon: 'phone.fill', action: () => console.log('Contact info') },
         { label: 'Direcciones', icon: 'location.fill', action: () => console.log('Addresses') },
-        { label: 'Perfiles Familiares', icon: 'person.2.fill', action: () => router.push('/family-profiles') },
+        { label: 'Métodos de Pago', icon: 'creditcard.fill', action: () => router.push('/payment-methods') },
       ],
     },
     {
@@ -55,25 +58,7 @@ export default function ProfileScreen() {
       items: [
         { label: 'Historial de Pedidos', icon: 'clock.fill', action: () => router.push('/(tabs)/orders') },
         { label: 'Facturas', icon: 'doc.text.fill', action: () => console.log('Invoices') },
-        { label: 'Métodos de Pago', icon: 'creditcard.fill', action: () => router.push('/payment-methods') },
         { label: 'Suscripciones', icon: 'repeat.circle.fill', action: () => router.push('/subscriptions') },
-      ],
-    },
-    {
-      title: 'Salud y Vacunación',
-      items: [
-        { label: 'Mi Registro de Vacunas', icon: 'heart.text.square.fill', action: () => router.push('/vaccination-records') },
-        { label: 'Citas Programadas', icon: 'calendar.badge.clock', action: () => router.push('/appointments') },
-        { label: 'Recordatorios', icon: 'bell.fill', action: () => router.push('/(tabs)/notifications') },
-        { label: 'Certificados', icon: 'doc.badge.plus', action: () => router.push('/vaccination-records') },
-      ],
-    },
-    {
-      title: 'Empresarial',
-      items: [
-        { label: 'Dashboard Corporativo', icon: 'building.2.fill', action: () => router.push('/corporate-dashboard') },
-        { label: 'Gestión de Empleados', icon: 'person.3.fill', action: () => router.push('/corporate-dashboard') },
-        { label: 'Reportes', icon: 'chart.bar.fill', action: () => router.push('/corporate-dashboard') },
       ],
     },
     {
@@ -144,6 +129,7 @@ export default function ProfileScreen() {
       
       <View style={styles.userInfo}>
         <Text style={commonStyles.title}>{userData.name}</Text>
+        <Text style={styles.centerName}>{userData.centerName}</Text>
         <Text style={commonStyles.textSecondary}>{userData.email}</Text>
         <Text style={commonStyles.textSecondary}>{userData.phone}</Text>
       </View>
@@ -217,6 +203,7 @@ export default function ProfileScreen() {
         <ScrollView 
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
         >
           {/* Profile Header */}
           {renderProfileHeader()}
@@ -227,7 +214,7 @@ export default function ProfileScreen() {
           {/* Logout Button */}
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <IconSymbol name="arrow.right.square" size={20} color={colors.error} />
-            <Text style={[commonStyles.text, { color: colors.error, marginLeft: 12 }]}>
+            <Text style={[commonStyles.text, { color: colors.error, marginLeft: spacing.md }]}>
               Cerrar Sesión
             </Text>
           </TouchableOpacity>
@@ -245,15 +232,18 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
+  },
+  scrollContent: {
+    paddingBottom: spacing.xxl, // 24dp bottom padding to avoid tab bar overlap
   },
   profileHeader: {
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: spacing.xl,
   },
   avatarContainer: {
     position: 'relative',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   avatar: {
     width: 80,
@@ -269,19 +259,25 @@ const styles = StyleSheet.create({
     right: -4,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.xl,
   },
   tierText: {
     fontSize: 10,
     fontWeight: '700',
     color: colors.card,
-    marginLeft: 4,
+    marginLeft: spacing.xs,
   },
   userInfo: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: spacing.xl,
+  },
+  centerName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
+    marginBottom: spacing.xs,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -304,18 +300,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: spacing.xxl, // 24dp between sections
   },
   sectionTitle: {
-    marginBottom: 12,
-    paddingHorizontal: 4,
+    marginBottom: spacing.md, // 12-16dp for section titles
+    paddingHorizontal: spacing.xs,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
   },
   menuItemBorder: {
     borderBottomWidth: 1,
@@ -333,7 +329,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary + '15',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: spacing.md,
   },
   menuItemRight: {
     flexDirection: 'row',
@@ -341,10 +337,10 @@ const styles = StyleSheet.create({
   },
   badge: {
     backgroundColor: colors.primary,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginRight: 8,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.xl,
+    marginRight: spacing.sm,
   },
   badgeText: {
     fontSize: 12,
@@ -355,15 +351,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    marginVertical: 20,
+    paddingVertical: spacing.lg,
+    marginVertical: spacing.xl,
     borderWidth: 1,
     borderColor: colors.error,
-    borderRadius: 12,
+    borderRadius: borderRadius.xl,
     backgroundColor: colors.error + '10',
   },
   versionContainer: {
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: spacing.xl,
   },
 });

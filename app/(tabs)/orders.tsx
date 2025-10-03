@@ -325,19 +325,19 @@ export default function OrdersScreen() {
         )}
         
         <TouchableOpacity
-          style={[styles.actionButton, !order.receiptUploaded && styles.actionButtonDisabled]}
+          style={[styles.actionButton, styles.actionButtonOutline, !order.receiptUploaded && styles.actionButtonDisabled]}
           onPress={() => handleViewReceipt(order)}
         >
-          <Text style={[styles.actionButtonText, !order.receiptUploaded && styles.actionButtonTextDisabled]}>
-            {order.receiptUploaded ? 'Ver Recibo' : 'Recibo Pendiente'}
+          <Text style={[styles.actionButtonTextOutline, !order.receiptUploaded && styles.actionButtonTextDisabled]}>
+            Recibo
           </Text>
         </TouchableOpacity>
         
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, styles.actionButtonOutline]}
           onPress={() => handleDownloadInvoice(order)}
         >
-          <Text style={styles.actionButtonText}>Factura</Text>
+          <Text style={styles.actionButtonTextOutline}>Factura</Text>
         </TouchableOpacity>
         
         <TouchableOpacity
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm, // 8dp gap between segments
   },
   tab: {
-    paddingHorizontal: spacing.lg, // 12-16dp horizontal padding
+    paddingHorizontal: spacing.lg, // 16dp horizontal padding
     paddingVertical: 10,
     borderRadius: spacing.lg, // 16dp radius for pill shape
     backgroundColor: '#F2F3F5', // Inactive background
@@ -454,26 +454,25 @@ const styles = StyleSheet.create({
   },
   ordersContent: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xxxl, // 24-32dp bottom padding to avoid tab bar overlap
+    paddingBottom: spacing.xxl, // 24dp bottom padding to avoid tab bar overlap
   },
 
-  // Compact Order Cards (marginBottom: 14dp, padding: 14-16dp)
+  // Compact Order Cards (marginBottom: 16dp, padding: 14-16dp)
   orderCard: {
     backgroundColor: colors.card,
     borderRadius: borderRadius.xl, // 12dp radius
-    padding: 16, // 14-16dp padding
-    marginBottom: 14, // 14dp vertical spacing - cards never touch
+    padding: spacing.lg, // 16dp padding
+    marginBottom: spacing.lg, // 16dp vertical spacing - cards never touch
     borderWidth: 1,
     borderColor: '#E5E5EA',
-    maxHeight: 160, // Keep under 160dp as specified
   },
 
   // Header Line (single row) - Format: "Pedido #VE-2025-001 • 2 vacunas • RD$ 1,680.00"
   orderHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
+    alignItems: 'flex-start',
+    marginBottom: spacing.sm, // 6-8dp between title and chip
   },
   orderTitle: {
     fontSize: 16, // 16sp bold
@@ -495,21 +494,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   statusChipText: {
-    fontSize: 12, // 12sp chip text
+    fontSize: 11, // Reduced font size to not compete with header
     fontWeight: '700',
     color: '#FFFFFF',
   },
 
   // Progress Bar (3-4dp height, marginTop 8dp)
   progressContainer: {
-    marginBottom: spacing.sm,
+    marginBottom: spacing.sm, // 8dp between progress bar and meta line
   },
   progressBar: {
     height: 4, // 3-4dp height
     backgroundColor: '#E5E5EA',
     borderRadius: 2,
     overflow: 'hidden',
-    marginTop: spacing.sm, // 8dp marginTop
   },
   progressFill: {
     height: '100%',
@@ -520,9 +518,8 @@ const styles = StyleSheet.create({
   metaText: {
     fontSize: 14, // 14sp
     color: '#374151', // Specified color
-    marginTop: spacing.sm, // 6-8dp marginTop
     marginBottom: spacing.sm,
-    lineHeight: 18,
+    lineHeight: 20, // fontSize * 1.45 for body text
   },
 
   // Payment Status
@@ -590,12 +587,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: spacing.xs,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
     minHeight: 36, // 36-40dp button height
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: colors.primary,
+  },
+  actionButtonOutline: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   actionButtonPrimary: {
     backgroundColor: colors.primary,
@@ -605,6 +605,11 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   actionButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.card,
+  },
+  actionButtonTextOutline: {
     fontSize: 12,
     fontWeight: '600',
     color: colors.text,
