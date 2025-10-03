@@ -241,6 +241,7 @@ export default function HomeScreen() {
   const activePromotions = getActivePromotions();
   const unreadNotifications = sampleNotifications.filter(n => !n.isRead).length;
 
+  // Streamlined quick actions - only essential features
   const quickActions = [
     {
       id: 'catalog',
@@ -259,20 +260,20 @@ export default function HomeScreen() {
       route: '/(tabs)/orders',
     },
     {
-      id: 'family',
-      label: 'Familia',
-      subtitle: 'Gestionar perfiles',
-      icon: 'person.2.fill',
-      color: colors.accent,
-      route: '/family-profiles',
+      id: 'promotions',
+      label: 'Ofertas',
+      subtitle: 'Descuentos activos',
+      icon: 'tag.fill',
+      color: colors.warning,
+      route: '/(tabs)/promotions',
     },
     {
-      id: 'appointments',
-      label: 'Citas',
-      subtitle: 'Programar',
-      icon: 'calendar',
-      color: colors.warning,
-      route: '/appointments',
+      id: 'profile',
+      label: 'Mi Perfil',
+      subtitle: 'Configuración',
+      icon: 'person.fill',
+      color: colors.accent,
+      route: '/(tabs)/profile',
     },
   ];
 
@@ -367,7 +368,7 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Quick Actions */}
+        {/* Quick Actions - Streamlined */}
         <View style={styles.quickActions}>
           <View style={styles.actionsGrid}>
             {quickActions.map((action) => (
@@ -457,33 +458,6 @@ export default function HomeScreen() {
               </TouchableOpacity>
             ))}
           </ScrollView>
-        </View>
-
-        {/* Health Stats */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Tu Progreso</Text>
-            <TouchableOpacity onPress={() => router.push('/vaccination-records')}>
-              <Text style={styles.sectionAction}>Ver historial</Text>
-            </TouchableOpacity>
-          </View>
-          
-          <View style={styles.statsContainer}>
-            <View style={styles.statsGrid}>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>12</Text>
-                <Text style={styles.statLabel}>Vacunas{'\n'}Completadas</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>3</Text>
-                <Text style={styles.statLabel}>Próximas{'\n'}Dosis</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>85%</Text>
-                <Text style={styles.statLabel}>Cobertura{'\n'}Familiar</Text>
-              </View>
-            </View>
-          </View>
         </View>
 
         {/* Recent Activity */}
