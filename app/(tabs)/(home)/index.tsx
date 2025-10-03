@@ -12,8 +12,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router } from 'expo-router';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
+import { getActivePromotions, sampleNotifications } from '@/data/vaccines';
 
 export default function HomeScreen() {
+  const activePromotions = getActivePromotions();
+  const unreadNotifications = sampleNotifications.filter(n => !n.isRead);
+
   const quickActions = [
     {
       title: 'Explorar Vacunas',
@@ -23,6 +27,14 @@ export default function HomeScreen() {
       route: '/(tabs)/catalog',
     },
     {
+      title: 'Ofertas Especiales',
+      description: `${activePromotions.length} promociones activas`,
+      icon: 'tag.fill',
+      color: colors.warning,
+      route: '/(tabs)/promotions',
+      badge: activePromotions.length > 0 ? activePromotions.length : undefined,
+    },
+    {
       title: 'Mis Pedidos',
       description: 'Seguir mis órdenes',
       icon: 'shippingbox.fill',
@@ -30,11 +42,11 @@ export default function HomeScreen() {
       route: '/(tabs)/orders',
     },
     {
-      title: 'Mi Perfil',
-      description: 'Gestionar cuenta',
-      icon: 'person.fill',
+      title: 'Educación',
+      description: 'Aprende sobre vacunas',
+      icon: 'book.fill',
       color: colors.secondary,
-      route: '/(tabs)/profile',
+      route: '/(tabs)/education',
     },
   ];
 
@@ -86,11 +98,52 @@ export default function HomeScreen() {
                 Distribución de vacunas a domicilio
               </Text>
             </View>
-            <View style={styles.logoContainer}>
-              <IconSymbol name="cross.fill" size={32} color={colors.primary} />
+            <View style={styles.headerActions}>
+              <TouchableOpacity 
+                style={styles.notificationButton}
+                onPress={() => router.push('/(tabs)/notifications')}
+              >
+                <IconSymbol name="bell.fill" size={24} color={colors.primary} />
+                {unreadNotifications.length > 0 && (
+                  <View style={styles.notificationBadge}>
+                    <Text style={styles.notificationBadgeText}>
+                      {unreadNotifications.length}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              <View style={styles.logoContainer}>
+                <IconSymbol name="cross.fill" size={32} color={colors.primary} />
+              </View>
             </View>
           </View>
         </View>
+
+        {/* Active Promotions Banner */}
+        {activePromotions.length > 0 && (
+          <View style={styles.promotionBanner}>
+            <View style={[commonStyles.card, styles.promotionCard]}>
+              <View style={styles.promotionHeader}>
+                <IconSymbol name="tag.fill" size={20} color={colors.warning} />
+                <Text style={[commonStyles.heading, { marginLeft: 8 }]}>
+                  ¡Ofertas Especiales!
+                </Text>
+              </View>
+              <Text style={commonStyles.textSecondary}>
+                {activePromotions[0].title} - {activePromotions[0].discountValue}% de descuento
+              </Text>
+              <TouchableOpacity 
+                style={styles.promotionButton}
+                onPress={() => router.push('/(tabs)/promotions')}
+              >
+                <Text style={[commonStyles.text, { color: colors.primary }]}>
+                  Ver todas las ofertas
+                </Text>
+                <IconSymbol name="arrow.right" size={16} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
         {/* Quick Actions */}
         <View style={styles.section}>
@@ -106,6 +159,11 @@ export default function HomeScreen() {
               >
                 <View style={[styles.quickActionIcon, { backgroundColor: action.color }]}>
                   <IconSymbol name={action.icon as any} size={24} color={colors.card} />
+                  {action.badge && (
+                    <View style={styles.actionBadge}>
+                      <Text style={styles.actionBadgeText}>{action.badge}</Text>
+                    </View>
+                  )}
                 </View>
                 <Text style={[commonStyles.heading, styles.quickActionTitle]}>
                   {action.title}
@@ -196,6 +254,36 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 4,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  notificationButton: {
+    width: 48,
+    height: 48,
+    backgroundColor: colors.card,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    ...commonStyles.shadow,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: colors.error,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notificationBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.card,
+  },
   logoContainer: {
     width: 60,
     height: 60,
@@ -204,6 +292,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...commonStyles.shadow,
+  },
+  promotionBanner: {
+    marginBottom: 32,
+  },
+  promotionCard: {
+    backgroundColor: colors.warning + '10',
+    borderColor: colors.warning,
+    borderWidth: 1,
+  },
+  promotionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  promotionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginTop: 12,
   },
   section: {
     marginBottom: 32,
@@ -232,6 +339,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
+    position: 'relative',
+  },
+  actionBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: colors.error,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.card,
   },
   quickActionTitle: {
     fontSize: 16,
