@@ -17,16 +17,30 @@ import { Vaccine } from '@/types/vaccine';
 import { router } from 'expo-router';
 import FloatingCartButton from '@/components/FloatingCartButton';
 
-const categories = ['Universal', 'Niños', 'Adolescentes', 'Adultos'];
+// Updated categories with "Todo" as the first option
+const categories = ['Todo', 'Universal', 'Niños', 'Adolescentes', 'Adultos'];
 
 export default function CatalogScreen() {
-  const [selectedCategory, setSelectedCategory] = useState('Universal');
+  const [selectedCategory, setSelectedCategory] = useState('Todo');
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<{[key: string]: number}>({});
 
-  const filteredVaccines = getVaccinesByCategory(selectedCategory).filter(vaccine =>
-    vaccine.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Updated filtering logic to handle "Todo" category
+  const filteredVaccines = (() => {
+    let categoryVaccines;
+    if (selectedCategory === 'Todo') {
+      // Show all vaccines when "Todo" is selected
+      categoryVaccines = vaccines;
+    } else {
+      // Filter by specific category
+      categoryVaccines = getVaccinesByCategory(selectedCategory);
+    }
+    
+    // Apply search filter
+    return categoryVaccines.filter(vaccine =>
+      vaccine.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  })();
 
   const addToCart = (vaccineId: string) => {
     setCart(prev => ({
@@ -129,7 +143,7 @@ export default function CatalogScreen() {
               onPress={() => addToCart(vaccine.id)}
             >
               <IconSymbol 
-                name={isOutOfStock ? "clock.fill" : "cart.badge.plus"} 
+                name={isOutOfStock ? "clock.fill" : "cart.fill"} 
                 size={16} 
                 color={colors.card} 
               />
@@ -160,9 +174,26 @@ export default function CatalogScreen() {
   return (
     <SafeAreaView style={commonStyles.safeArea}>
       <View style={commonStyles.container}>
-        {/* Header */}
+        {/* Header with Cart Button */}
         <View style={styles.header}>
-          <Text style={commonStyles.title}>Catálogo de Vacunas</Text>
+          <View style={styles.headerContent}>
+            <Text style={commonStyles.title}>Catálogo de Vacunas</Text>
+            
+            {/* Floating Cart Button in Header */}
+            <TouchableOpacity
+              style={styles.headerCartButton}
+              onPress={() => router.push('/cart')}
+            >
+              <IconSymbol name="cart" size={24} color={colors.primary} />
+              {cartItemCount > 0 && (
+                <View style={styles.cartBadge}>
+                  <Text style={styles.cartBadgeText}>
+                    {cartItemCount > 99 ? '99+' : cartItemCount}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
           
           {/* Search Bar */}
           <View style={styles.searchContainer}>
@@ -215,13 +246,13 @@ export default function CatalogScreen() {
             <View style={[commonStyles.center, { marginTop: 50 }]}>
               <IconSymbol name="exclamationmark.triangle" size={48} color={colors.textSecondary} />
               <Text style={[commonStyles.text, { marginTop: 16, textAlign: 'center' }]}>
-                No se encontraron vacunas para "{searchQuery}"
+                {searchQuery ? `No se encontraron vacunas para "${searchQuery}"` : 'No hay vacunas disponibles'}
               </Text>
             </View>
           )}
         </ScrollView>
 
-        {/* Floating Cart Button */}
+        {/* Floating Cart Button at Bottom */}
         <FloatingCartButton
           itemCount={cartItemCount}
           totalAmount={cartTotal}
@@ -237,6 +268,43 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  // Header Cart Button (top-right)
+  headerCartButton: {
+    position: 'relative',
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cartBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: '#FF3B30', // Red badge as specified
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
+  cartBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 16,
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -244,7 +312,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    marginTop: 16,
     borderWidth: 1,
     borderColor: colors.border,
   },

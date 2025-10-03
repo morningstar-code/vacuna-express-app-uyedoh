@@ -1,3 +1,4 @@
+
 // This file is a fallback for using MaterialIcons on Android and web.
 
 import React from "react";
@@ -114,7 +115,8 @@ const MAPPING = {
 
   // Shopping & Commerce
   "cart.fill": "shopping-cart",
-  "cart": "shopping-cart-outlined",
+  "cart": "shopping-cart",
+  "cart.badge.plus": "add-shopping-cart",
   "creditcard.fill": "credit-card",
   "creditcard": "credit-card",
   "dollarsign.circle.fill": "monetization-on",
@@ -161,6 +163,14 @@ const MAPPING = {
   "lightbulb.fill": "lightbulb",
   "moon.fill": "dark-mode",
   "sun.max.fill": "light-mode",
+
+  // Additional icons for catalog and orders
+  "list.bullet.clipboard.fill": "assignment",
+  "list.bullet.clipboard": "assignment-outlined",
+  "shippingbox.fill": "local-shipping",
+  "shippingbox": "local-shipping",
+  "tag.fill": "local-offer",
+  "tag": "local-offer",
 } as Partial<
   Record<
     import("expo-symbols").SymbolViewProps["name"],

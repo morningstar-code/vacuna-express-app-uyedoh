@@ -20,6 +20,7 @@ export default function RegisterScreen() {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    businessName: '', // New required field
     email: '',
     phone: '',
     rnc: '',
@@ -35,9 +36,10 @@ export default function RegisterScreen() {
   };
 
   const validateForm = () => {
-    const { firstName, lastName, email, phone, rnc, cedula, address, password, confirmPassword } = formData;
+    const { firstName, lastName, businessName, email, phone, rnc, cedula, address, password, confirmPassword } = formData;
     
-    if (!firstName || !lastName || !email || !phone || !rnc || !cedula || !address || !password) {
+    // Check all required fields including businessName
+    if (!firstName || !lastName || !businessName || !email || !phone || !rnc || !cedula || !address || !password) {
       Alert.alert('Error', 'Por favor complete todos los campos obligatorios');
       return false;
     }
@@ -127,6 +129,18 @@ export default function RegisterScreen() {
                   autoCapitalize="words"
                 />
               </View>
+            </View>
+
+            {/* New Required Business Name Field */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Nombre del Centro/Negocio *</Text>
+              <TextInput
+                style={[commonStyles.input, styles.input]}
+                placeholder="Ej: Clínica San Rafael, Centro Médico ABC"
+                value={formData.businessName}
+                onChangeText={(value) => updateField('businessName', value)}
+                autoCapitalize="words"
+              />
             </View>
 
             <View style={styles.inputContainer}>
