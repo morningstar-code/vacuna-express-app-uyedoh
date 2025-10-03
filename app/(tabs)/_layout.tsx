@@ -41,10 +41,27 @@ export default function TabLayout() {
     },
   ];
 
-  // Use NativeTabs for iOS, custom FloatingTabBar for Android and Web
+  // Use NativeTabs for iOS with consistent styling
   if (Platform.OS === 'ios') {
     return (
-      <NativeTabs>
+      <NativeTabs
+        screenOptions={{
+          tabBarStyle: {
+            backgroundColor: '#FFFFFF',
+            borderTopWidth: 1,
+            borderTopColor: '#E5E5E5',
+            paddingBottom: 0,
+            height: 84,
+          },
+          tabBarActiveTintColor: '#007BFF',
+          tabBarInactiveTintColor: '#8E8E93',
+          tabBarLabelStyle: {
+            fontSize: 11,
+            fontWeight: '500',
+          },
+          safeAreaInsets: { bottom: 'always' },
+        }}
+      >
         <NativeTabs.Trigger name="(home)">
           <Icon sf="house.fill" drawable="ic_home" />
           <Label>Inicio</Label>

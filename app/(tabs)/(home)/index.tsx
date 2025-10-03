@@ -1,4 +1,7 @@
 
+import { IconSymbol } from '@/components/IconSymbol';
+import { Stack, router } from 'expo-router';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,488 +11,473 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import { colors, commonStyles, spacing, borderRadius, shadows, typography } from '@/styles/commonStyles';
 import { getActivePromotions, sampleNotifications } from '@/data/vaccines';
-import React from 'react';
+import { colors, commonStyles, spacing, borderRadius, shadows, typography } from '@/styles/commonStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { IconSymbol } from '@/components/IconSymbol';
-import { Stack, router } from 'expo-router';
+import FloatingCartButton from '@/components/FloatingCartButton';
 
-const { width } = Dimensions.get('window');
+export default function HomeScreen() {
+  // Mock cart state - in a real app this would come from a global state manager
+  const [cart, setCart] = useState<{[key: string]: number}>({});
+  
+  // Calculate cart totals
+  const cartItemCount = Object.values(cart).reduce((sum, quantity) => sum + quantity, 0);
+  const cartTotal = Object.entries(cart).reduce((total, [vaccineId, quantity]) => {
+    // Mock price calculation - in real app would fetch from vaccine data
+    const mockPrice = 25.99;
+    return total + (mockPrice * quantity);
+  }, 0);
+
+  const handleQuickAction = (route: string) => {
+    console.log('Navigating to:', route);
+    router.push(route);
+  };
+
+  const handleCategoryPress = (category: string) => {
+    console.log('Category pressed:', category);
+    router.push('/(tabs)/catalog');
+  };
+
+  const handleNotifications = () => {
+    console.log('Opening notifications');
+    router.push('/(tabs)/notifications');
+  };
+
+  return (
+    <SafeAreaView style={commonStyles.safeArea}>
+      <Stack.Screen options={{ headerShown: false }} />
+      
+      <ScrollView 
+        style={commonStyles.container}
+        contentContainerStyle={{ paddingBottom: cartItemCount > 0 ? 100 : 20 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>¡Hola!</Text>
+            <Text style={styles.welcomeText}>Bienvenido a VacunaExpress</Text>
+          </View>
+          
+          <TouchableOpacity 
+            style={styles.notificationButton}
+            onPress={handleNotifications}
+          >
+            <IconSymbol name="bell.fill" size={24} color={colors.primary} />
+            {sampleNotifications.filter(n => !n.isRead).length > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>
+                  {sampleNotifications.filter(n => !n.isRead).length}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
+          <View style={styles.quickActions}>
+            <TouchableOpacity 
+              style={styles.quickActionCard}
+              onPress={() => handleQuickAction('/(tabs)/catalog')}
+            >
+              <View style={[styles.quickActionIcon, { backgroundColor: colors.primary + '15' }]}>
+                <IconSymbol name="list.bullet.rectangle" size={28} color={colors.primary} />
+              </View>
+              <Text style={styles.quickActionTitle}>Catálogo</Text>
+              <Text style={styles.quickActionSubtitle}>Explorar vacunas</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.quickActionCard}
+              onPress={() => handleQuickAction('/(tabs)/orders')}
+            >
+              <View style={[styles.quickActionIcon, { backgroundColor: colors.accent + '15' }]}>
+                <IconSymbol name="shippingbox.fill" size={28} color={colors.accent} />
+              </View>
+              <Text style={styles.quickActionTitle}>Mis Pedidos</Text>
+              <Text style={styles.quickActionSubtitle}>Seguir entregas</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.quickActionCard}
+              onPress={() => handleQuickAction('/(tabs)/promotions')}
+            >
+              <View style={[styles.quickActionIcon, { backgroundColor: colors.warning + '15' }]}>
+                <IconSymbol name="tag.fill" size={28} color={colors.warning} />
+              </View>
+              <Text style={styles.quickActionTitle}>Ofertas</Text>
+              <Text style={styles.quickActionSubtitle}>Descuentos activos</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.quickActionCard}
+              onPress={() => handleQuickAction('/(tabs)/profile')}
+            >
+              <View style={[styles.quickActionIcon, { backgroundColor: colors.info + '15' }]}>
+                <IconSymbol name="person.fill" size={28} color={colors.info} />
+              </View>
+              <Text style={styles.quickActionTitle}>Mi Perfil</Text>
+              <Text style={styles.quickActionSubtitle}>Configuración</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Categories */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Categorías de Vacunas</Text>
+          <View style={styles.categories}>
+            <TouchableOpacity 
+              style={styles.categoryCard}
+              onPress={() => handleCategoryPress('Universal')}
+            >
+              <View style={[styles.categoryIcon, { backgroundColor: colors.primary + '15' }]}>
+                <IconSymbol name="globe" size={32} color={colors.primary} />
+              </View>
+              <Text style={styles.categoryTitle}>Universal</Text>
+              <Text style={styles.categorySubtitle}>Para todas las edades</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.categoryCard}
+              onPress={() => handleCategoryPress('Niños')}
+            >
+              <View style={[styles.categoryIcon, { backgroundColor: colors.accent + '15' }]}>
+                <IconSymbol name="figure.child" size={32} color={colors.accent} />
+              </View>
+              <Text style={styles.categoryTitle}>Niños</Text>
+              <Text style={styles.categorySubtitle}>Pediatría especializada</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.categoryCard}
+              onPress={() => handleCategoryPress('Adolescentes')}
+            >
+              <View style={[styles.categoryIcon, { backgroundColor: colors.info + '15' }]}>
+                <IconSymbol name="figure.walk" size={32} color={colors.info} />
+              </View>
+              <Text style={styles.categoryTitle}>Adolescentes</Text>
+              <Text style={styles.categorySubtitle}>11-18 años</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.categoryCard}
+              onPress={() => handleCategoryPress('Adultos')}
+            >
+              <View style={[styles.categoryIcon, { backgroundColor: colors.warning + '15' }]}>
+                <IconSymbol name="person.2.fill" size={32} color={colors.warning} />
+              </View>
+              <Text style={styles.categoryTitle}>Adultos</Text>
+              <Text style={styles.categorySubtitle}>Mayores de 18 años</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Active Promotions */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Promociones Activas</Text>
+            <TouchableOpacity onPress={() => handleQuickAction('/(tabs)/promotions')}>
+              <Text style={styles.seeAllText}>Ver todas</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.promotionsContainer}
+          >
+            {getActivePromotions().slice(0, 3).map((promotion) => (
+              <View key={promotion.id} style={styles.promotionCard}>
+                <View style={styles.promotionHeader}>
+                  <IconSymbol name="tag.fill" size={20} color={colors.warning} />
+                  <Text style={styles.promotionDiscount}>-{promotion.discountValue}%</Text>
+                </View>
+                <Text style={styles.promotionTitle}>{promotion.title}</Text>
+                <Text style={styles.promotionDescription} numberOfLines={2}>
+                  {promotion.description}
+                </Text>
+                <Text style={styles.promotionExpiry}>
+                  Válido hasta: {new Date(promotion.validTo).toLocaleDateString('es-DO')}
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Recent Notifications */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Notificaciones Recientes</Text>
+            <TouchableOpacity onPress={handleNotifications}>
+              <Text style={styles.seeAllText}>Ver todas</Text>
+            </TouchableOpacity>
+          </View>
+          
+          {sampleNotifications.slice(0, 3).map((notification) => (
+            <View key={notification.id} style={styles.notificationCard}>
+              <View style={styles.notificationIcon}>
+                <IconSymbol 
+                  name={
+                    notification.type === 'reminder' ? 'clock.fill' :
+                    notification.type === 'promotion' ? 'tag.fill' :
+                    notification.type === 'shipment' ? 'shippingbox.fill' :
+                    'info.circle.fill'
+                  } 
+                  size={20} 
+                  color={colors.primary} 
+                />
+              </View>
+              <View style={styles.notificationContent}>
+                <Text style={styles.notificationTitle}>{notification.title}</Text>
+                <Text style={styles.notificationMessage} numberOfLines={2}>
+                  {notification.message}
+                </Text>
+                <Text style={styles.notificationTime}>
+                  {new Date(notification.createdAt).toLocaleDateString('es-DO')}
+                </Text>
+              </View>
+              {!notification.isRead && <View style={styles.unreadDot} />}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+
+      {/* Floating Cart Button */}
+      <FloatingCartButton
+        itemCount={cartItemCount}
+        totalAmount={cartTotal}
+      />
+    </SafeAreaView>
+  );
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   header: {
-    backgroundColor: colors.primary,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.xxl,
-    borderBottomLeftRadius: borderRadius.xxl,
-    borderBottomRightRadius: borderRadius.xxl,
+    paddingVertical: spacing.xl,
+    backgroundColor: colors.card,
+    marginBottom: spacing.sm,
+    ...shadows.sm,
   },
-  headerContent: {
-    marginTop: spacing.md,
+  greeting: {
+    ...typography.h3,
+    color: colors.text,
+    fontWeight: '700',
   },
   welcomeText: {
-    ...typography.h3,
-    color: colors.card,
-    marginBottom: spacing.xs,
+    ...typography.body2,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
-  userText: {
-    ...typography.body1,
-    color: colors.card,
-    opacity: 0.9,
+  notificationButton: {
+    position: 'relative',
+    padding: spacing.sm,
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.full,
+    ...shadows.sm,
   },
   notificationBadge: {
     position: 'absolute',
-    top: spacing.lg,
-    right: spacing.lg,
+    top: 2,
+    right: 2,
     backgroundColor: colors.error,
     borderRadius: borderRadius.full,
-    width: 24,
-    height: 24,
+    minWidth: 18,
+    height: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  badgeText: {
-    color: colors.card,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  quickActions: {
-    marginTop: -spacing.xxl,
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.lg,
-  },
-  actionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-  },
-  actionCard: {
-    backgroundColor: colors.card,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    width: (width - spacing.lg * 3) / 2,
-    alignItems: 'center',
-    ...shadows.md,
-  },
-  actionIcon: {
-    marginBottom: spacing.md,
-  },
-  actionLabel: {
-    ...typography.body2,
-    fontWeight: '600',
-    color: colors.text,
-    textAlign: 'center',
-  },
-  actionSubtitle: {
+  notificationBadgeText: {
     ...typography.caption,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: spacing.xs,
+    color: colors.card,
+    fontWeight: '700',
+    fontSize: 10,
   },
+  
   section: {
-    paddingHorizontal: spacing.lg,
     marginBottom: spacing.xl,
+    paddingHorizontal: spacing.lg,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   sectionTitle: {
-    ...typography.h5,
+    ...typography.h4,
     color: colors.text,
+    fontWeight: '600',
   },
-  sectionAction: {
+  seeAllText: {
     ...typography.body2,
     color: colors.primary,
     fontWeight: '600',
   },
-  promotionCard: {
+  
+  quickActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+  },
+  quickActionCard: {
     backgroundColor: colors.card,
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
-    marginRight: spacing.md,
-    width: width * 0.8,
-    ...shadows.md,
-  },
-  promotionHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    width: '47%',
+    ...shadows.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  promotionIcon: {
-    marginRight: spacing.md,
+  quickActionIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: borderRadius.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
   },
-  promotionTitle: {
+  quickActionTitle: {
     ...typography.h6,
     color: colors.text,
-    flex: 1,
-  },
-  promotionDescription: {
-    ...typography.body2,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
-    lineHeight: 20,
-  },
-  promotionFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  promotionDiscount: {
-    ...typography.h6,
-    color: colors.success,
-    fontWeight: '700',
-  },
-  promotionButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
-  },
-  promotionButtonText: {
-    ...typography.body2,
-    color: colors.card,
     fontWeight: '600',
+    marginBottom: 2,
+  },
+  quickActionSubtitle: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  
+  categories: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: spacing.md,
   },
   categoryCard: {
     backgroundColor: colors.card,
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
-    marginRight: spacing.md,
-    width: width * 0.4,
     alignItems: 'center',
-    ...shadows.md,
+    width: '47%',
+    ...shadows.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   categoryIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: borderRadius.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: spacing.md,
   },
   categoryTitle: {
-    ...typography.body1,
-    fontWeight: '600',
+    ...typography.h6,
     color: colors.text,
-    textAlign: 'center',
-    marginBottom: spacing.xs,
+    fontWeight: '600',
+    marginBottom: 2,
   },
   categorySubtitle: {
     ...typography.caption,
     color: colors.textSecondary,
     textAlign: 'center',
   },
-  statsContainer: {
+  
+  promotionsContainer: {
+    paddingRight: spacing.lg,
+  },
+  promotionCard: {
     backgroundColor: colors.card,
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
-    ...shadows.md,
+    marginRight: spacing.md,
+    width: 280,
+    ...shadows.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  statsGrid: {
+  promotionHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
     alignItems: 'center',
+    marginBottom: spacing.sm,
   },
-  statValue: {
-    ...typography.h4,
-    color: colors.primary,
+  promotionDiscount: {
+    ...typography.h5,
+    color: colors.warning,
     fontWeight: '700',
+    marginLeft: spacing.sm,
+  },
+  promotionTitle: {
+    ...typography.h6,
+    color: colors.text,
+    fontWeight: '600',
     marginBottom: spacing.xs,
   },
-  statLabel: {
-    ...typography.caption,
+  promotionDescription: {
+    ...typography.body2,
     color: colors.textSecondary,
-    textAlign: 'center',
+    marginBottom: spacing.sm,
   },
-  recentActivity: {
+  promotionExpiry: {
+    ...typography.caption,
+    color: colors.textTertiary,
+  },
+  
+  notificationCard: {
     backgroundColor: colors.card,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    ...shadows.md,
-  },
-  activityItem: {
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
+    alignItems: 'flex-start',
+    ...shadows.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    position: 'relative',
   },
-  activityIcon: {
+  notificationIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: spacing.md,
   },
-  activityContent: {
+  notificationContent: {
     flex: 1,
   },
-  activityTitle: {
-    ...typography.body2,
+  notificationTitle: {
+    ...typography.body1,
     color: colors.text,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  notificationMessage: {
+    ...typography.body2,
+    color: colors.textSecondary,
     marginBottom: spacing.xs,
   },
-  activityTime: {
+  notificationTime: {
     ...typography.caption,
-    color: colors.textSecondary,
+    color: colors.textTertiary,
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.primary,
+    position: 'absolute',
+    top: spacing.md,
+    right: spacing.md,
   },
 });
-
-export default function HomeScreen() {
-  const activePromotions = getActivePromotions();
-  const unreadNotifications = sampleNotifications.filter(n => !n.isRead).length;
-
-  // Streamlined quick actions - only essential features
-  const quickActions = [
-    {
-      id: 'catalog',
-      label: 'Catálogo',
-      subtitle: 'Explorar vacunas',
-      icon: 'list.bullet.rectangle',
-      color: colors.primary,
-      route: '/(tabs)/catalog',
-    },
-    {
-      id: 'orders',
-      label: 'Mis Pedidos',
-      subtitle: 'Ver estado',
-      icon: 'shippingbox.fill',
-      color: colors.success,
-      route: '/(tabs)/orders',
-    },
-    {
-      id: 'promotions',
-      label: 'Ofertas',
-      subtitle: 'Descuentos activos',
-      icon: 'tag.fill',
-      color: colors.warning,
-      route: '/(tabs)/promotions',
-    },
-    {
-      id: 'profile',
-      label: 'Mi Perfil',
-      subtitle: 'Configuración',
-      icon: 'person.fill',
-      color: colors.accent,
-      route: '/(tabs)/profile',
-    },
-  ];
-
-  const categories = [
-    {
-      id: 'universal',
-      title: 'Universal',
-      subtitle: 'Todas las edades',
-      icon: 'globe',
-      color: colors.primary,
-    },
-    {
-      id: 'children',
-      title: 'Niños',
-      subtitle: '0-12 años',
-      icon: 'figure.child.circle',
-      color: colors.success,
-    },
-    {
-      id: 'teens',
-      title: 'Adolescentes',
-      subtitle: '13-17 años',
-      icon: 'figure.walk',
-      color: colors.warning,
-    },
-    {
-      id: 'adults',
-      title: 'Adultos',
-      subtitle: '18+ años',
-      icon: 'person.fill',
-      color: colors.accent,
-    },
-  ];
-
-  const recentActivities = [
-    {
-      id: '1',
-      title: 'Pedido #VE-2024-001 entregado',
-      time: 'Hace 2 horas',
-      icon: 'checkmark.circle.fill',
-      color: colors.success,
-    },
-    {
-      id: '2',
-      title: 'Recordatorio: Refuerzo Tdap',
-      time: 'Hace 1 día',
-      icon: 'bell.fill',
-      color: colors.warning,
-    },
-    {
-      id: '3',
-      title: 'Nueva promoción disponible',
-      time: 'Hace 2 días',
-      icon: 'tag.fill',
-      color: colors.primary,
-    },
-  ];
-
-  const handleQuickAction = (route: string) => {
-    router.push(route as any);
-  };
-
-  const handleCategoryPress = (category: string) => {
-    router.push(`/(tabs)/catalog?category=${category}`);
-  };
-
-  const handleNotifications = () => {
-    router.push('/(tabs)/notifications');
-  };
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ headerShown: false }} />
-      
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <Text style={styles.welcomeText}>¡Hola, María!</Text>
-            <Text style={styles.userText}>
-              Mantén tu salud al día con VacunaExpress
-            </Text>
-          </View>
-          
-          {unreadNotifications > 0 && (
-            <TouchableOpacity
-              style={styles.notificationBadge}
-              onPress={handleNotifications}
-            >
-              <Text style={styles.badgeText}>{unreadNotifications}</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Quick Actions - Streamlined */}
-        <View style={styles.quickActions}>
-          <View style={styles.actionsGrid}>
-            {quickActions.map((action) => (
-              <TouchableOpacity
-                key={action.id}
-                style={styles.actionCard}
-                onPress={() => handleQuickAction(action.route)}
-              >
-                <IconSymbol
-                  name={action.icon}
-                  size={32}
-                  color={action.color}
-                  style={styles.actionIcon}
-                />
-                <Text style={styles.actionLabel}>{action.label}</Text>
-                <Text style={styles.actionSubtitle}>{action.subtitle}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Active Promotions */}
-        {activePromotions.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Ofertas Especiales</Text>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/promotions')}>
-                <Text style={styles.sectionAction}>Ver todas</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {activePromotions.slice(0, 3).map((promotion) => (
-                <View key={promotion.id} style={styles.promotionCard}>
-                  <View style={styles.promotionHeader}>
-                    <IconSymbol
-                      name="tag.fill"
-                      size={24}
-                      color={colors.primary}
-                      style={styles.promotionIcon}
-                    />
-                    <Text style={styles.promotionTitle}>{promotion.title}</Text>
-                  </View>
-                  
-                  <Text style={styles.promotionDescription}>
-                    {promotion.description}
-                  </Text>
-                  
-                  <View style={styles.promotionFooter}>
-                    <Text style={styles.promotionDiscount}>
-                      {promotion.discountValue}% OFF
-                    </Text>
-                    <TouchableOpacity style={styles.promotionButton}>
-                      <Text style={styles.promotionButtonText}>Usar</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-
-        {/* Categories */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Categorías</Text>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/catalog')}>
-              <Text style={styles.sectionAction}>Ver catálogo</Text>
-            </TouchableOpacity>
-          </View>
-          
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {categories.map((category) => (
-              <TouchableOpacity
-                key={category.id}
-                style={styles.categoryCard}
-                onPress={() => handleCategoryPress(category.id)}
-              >
-                <IconSymbol
-                  name={category.icon}
-                  size={32}
-                  color={category.color}
-                  style={styles.categoryIcon}
-                />
-                <Text style={styles.categoryTitle}>{category.title}</Text>
-                <Text style={styles.categorySubtitle}>{category.subtitle}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Recent Activity */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Actividad Reciente</Text>
-          </View>
-          
-          <View style={styles.recentActivity}>
-            {recentActivities.map((activity, index) => (
-              <View
-                key={activity.id}
-                style={[
-                  styles.activityItem,
-                  index === recentActivities.length - 1 && { borderBottomWidth: 0 },
-                ]}
-              >
-                <IconSymbol
-                  name={activity.icon}
-                  size={20}
-                  color={activity.color}
-                  style={styles.activityIcon}
-                />
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>{activity.title}</Text>
-                  <Text style={styles.activityTime}>{activity.time}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}

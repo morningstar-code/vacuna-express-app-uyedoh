@@ -8,7 +8,7 @@ export const colors = {
   text: '#1A202C',
   textSecondary: '#718096',
   textTertiary: '#A0AEC0',
-  primary: '#2B6CB0',
+  primary: '#007BFF', // Updated to requested primary blue
   primaryLight: '#3182CE',
   primaryDark: '#2C5282',
   secondary: '#4A5568',
@@ -35,7 +35,7 @@ export const colors = {
   cancelled: '#E53E3E',
   
   // Gradients
-  primaryGradient: ['#2B6CB0', '#3182CE'],
+  primaryGradient: ['#007BFF', '#3182CE'], // Updated primary gradient
   successGradient: ['#38A169', '#48BB78'],
   warningGradient: ['#D69E2E', '#F6E05E'],
 };
