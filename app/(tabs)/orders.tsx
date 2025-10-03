@@ -1,5 +1,4 @@
 
-import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,182 +7,368 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import React, { useState } from 'react';
+import { colors, commonStyles, spacing, borderRadius, shadows } from '@/styles/commonStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, commonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { Order } from '@/types/vaccine';
+import { router } from 'expo-router';
 
-// Sample orders data
-const sampleOrders: Order[] = [
-  {
-    id: 'order-001',
-    userId: 'user-1',
-    items: [
-      {
-        vaccineId: 'influenza',
-        vaccineName: 'Influenza',
-        dose: '1ª Dosis',
-        quantity: 2,
-        price: 25.00,
-      },
-      {
-        vaccineId: 'vph',
-        vaccineName: 'VPH',
-        dose: '1ª Dosis',
-        quantity: 1,
-        price: 180.00,
-      },
-    ],
-    totalAmount: 230.00,
-    status: 'in_progress',
-    orderDate: '2024-01-15T10:30:00Z',
-    trackingNumber: 'VE2024001',
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
   },
-  {
-    id: 'order-002',
-    userId: 'user-1',
-    items: [
-      {
-        vaccineId: 'hepatitis-b',
-        vaccineName: 'Hepatitis B',
-        dose: '2ª Dosis',
-        quantity: 1,
-        price: 45.00,
-      },
-    ],
-    totalAmount: 45.00,
-    status: 'delivered',
-    orderDate: '2024-01-10T14:20:00Z',
-    deliveryDate: '2024-01-12T16:45:00Z',
-    trackingNumber: 'VE2024002',
+  header: {
+    backgroundColor: colors.card,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xl,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-  {
-    id: 'order-003',
-    userId: 'user-1',
-    items: [
-      {
-        vaccineId: 'tdap',
-        vaccineName: 'Tdap',
-        dose: 'Refuerzo',
-        quantity: 3,
-        price: 45.00,
-      },
-    ],
-    totalAmount: 135.00,
-    status: 'pending',
-    orderDate: '2024-01-20T09:15:00Z',
-    trackingNumber: 'VE2024003',
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
-];
+  headerSubtitle: {
+    fontSize: 16,
+    color: colors.textSecondary,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.card,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  filterButton: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    marginRight: spacing.sm,
+    borderWidth: 2,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+  },
+  filterButtonActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  filterButtonTextActive: {
+    color: colors.card,
+  },
+  ordersList: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  orderCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    ...shadows.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  orderHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacing.md,
+  },
+  orderInfo: {
+    flex: 1,
+  },
+  orderNumber: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  orderDate: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  orderAmount: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  statusContainer: {
+    alignItems: 'flex-end',
+  },
+  statusBadge: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    marginBottom: spacing.xs,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.card,
+    textTransform: 'uppercase',
+  },
+  statusIcon: {
+    marginTop: spacing.xs,
+  },
+  orderItems: {
+    marginBottom: spacing.md,
+  },
+  itemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  itemName: {
+    fontSize: 14,
+    color: colors.text,
+    flex: 1,
+  },
+  itemQuantity: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginRight: spacing.md,
+  },
+  itemPrice: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  orderActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderLight,
+  },
+  actionButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 2,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  trackButton: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  reorderButton: {
+    backgroundColor: 'transparent',
+    borderColor: colors.accent,
+  },
+  cancelButton: {
+    backgroundColor: 'transparent',
+    borderColor: colors.error,
+  },
+  downloadButton: {
+    backgroundColor: 'transparent',
+    borderColor: colors.secondary,
+  },
+  actionButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  trackButtonText: {
+    color: colors.card,
+  },
+  reorderButtonText: {
+    color: colors.accent,
+  },
+  cancelButtonText: {
+    color: colors.error,
+  },
+  downloadButtonText: {
+    color: colors.secondary,
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: spacing.xxxl,
+  },
+  emptyIcon: {
+    marginBottom: spacing.lg,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
+  emptyDescription: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+});
 
 export default function OrdersScreen() {
-  const [selectedTab, setSelectedTab] = useState<'active' | 'history'>('active');
+  const [selectedFilter, setSelectedFilter] = useState('all');
+
+  // Sample orders data
+  const [orders] = useState<Order[]>([
+    {
+      id: 'VE-2024-001',
+      userId: 'user-1',
+      items: [
+        {
+          vaccineId: 'influenza',
+          vaccineName: 'Influenza',
+          dose: '1ª Dosis',
+          quantity: 1,
+          price: 25.00,
+        },
+        {
+          vaccineId: 'hep-b',
+          vaccineName: 'Hepatitis B',
+          dose: 'Refuerzo',
+          quantity: 1,
+          price: 45.00,
+        },
+      ],
+      totalAmount: 70.00,
+      status: 'in_progress',
+      orderDate: '2024-01-20T14:30:00Z',
+      deliveryDate: '2024-01-20T18:00:00Z',
+      trackingNumber: 'VE20240120001',
+    },
+    {
+      id: 'VE-2024-002',
+      userId: 'user-1',
+      items: [
+        {
+          vaccineId: 'vph',
+          vaccineName: 'VPH',
+          dose: '1ª Dosis',
+          quantity: 1,
+          price: 180.00,
+        },
+      ],
+      totalAmount: 180.00,
+      status: 'delivered',
+      orderDate: '2024-01-18T10:15:00Z',
+      deliveryDate: '2024-01-18T16:30:00Z',
+      trackingNumber: 'VE20240118002',
+    },
+    {
+      id: 'VE-2024-003',
+      userId: 'user-1',
+      items: [
+        {
+          vaccineId: 'tdap',
+          vaccineName: 'Tdap',
+          dose: 'Refuerzo',
+          quantity: 2,
+          price: 45.00,
+        },
+      ],
+      totalAmount: 90.00,
+      status: 'pending',
+      orderDate: '2024-01-22T09:00:00Z',
+      trackingNumber: 'VE20240122003',
+    },
+  ]);
+
+  const filters = [
+    { id: 'all', label: 'Todos' },
+    { id: 'pending', label: 'Pendientes' },
+    { id: 'in_progress', label: 'En Proceso' },
+    { id: 'delivered', label: 'Entregados' },
+    { id: 'cancelled', label: 'Cancelados' },
+  ];
+
+  const getFilteredOrders = () => {
+    if (selectedFilter === 'all') return orders;
+    return orders.filter(order => order.status === selectedFilter);
+  };
 
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
-      case 'pending':
-        return colors.warning;
-      case 'confirmed':
-        return colors.primary;
-      case 'in_progress':
-        return colors.accent;
-      case 'delivered':
-        return colors.success;
-      case 'cancelled':
-        return colors.error;
-      default:
-        return colors.textSecondary;
+      case 'pending': return colors.warning;
+      case 'confirmed': return colors.info;
+      case 'in_progress': return colors.primary;
+      case 'delivered': return colors.success;
+      case 'cancelled': return colors.error;
+      default: return colors.textSecondary;
     }
   };
 
   const getStatusText = (status: Order['status']) => {
     switch (status) {
-      case 'pending':
-        return 'Pendiente';
-      case 'confirmed':
-        return 'Confirmado';
-      case 'in_progress':
-        return 'En Proceso';
-      case 'delivered':
-        return 'Entregado';
-      case 'cancelled':
-        return 'Cancelado';
-      default:
-        return status;
+      case 'pending': return 'Pendiente';
+      case 'confirmed': return 'Confirmado';
+      case 'in_progress': return 'En Proceso';
+      case 'delivered': return 'Entregado';
+      case 'cancelled': return 'Cancelado';
+      default: return 'Desconocido';
     }
   };
 
   const getStatusIcon = (status: Order['status']) => {
     switch (status) {
-      case 'pending':
-        return 'clock';
-      case 'confirmed':
-        return 'checkmark.circle';
-      case 'in_progress':
-        return 'shippingbox';
-      case 'delivered':
-        return 'checkmark.circle.fill';
-      case 'cancelled':
-        return 'xmark.circle';
-      default:
-        return 'questionmark.circle';
+      case 'pending': return 'clock.fill';
+      case 'confirmed': return 'checkmark.circle.fill';
+      case 'in_progress': return 'car.fill';
+      case 'delivered': return 'checkmark.seal.fill';
+      case 'cancelled': return 'xmark.circle.fill';
+      default: return 'circle.fill';
     }
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-DO', {
-      year: 'numeric',
-      month: 'short',
+    return new Date(dateString).toLocaleDateString('es-DO', {
       day: 'numeric',
+      month: 'short',
+      year: 'numeric',
     });
   };
 
-  const activeOrders = sampleOrders.filter(order => 
-    order.status !== 'delivered' && order.status !== 'cancelled'
-  );
-
-  const orderHistory = sampleOrders.filter(order => 
-    order.status === 'delivered' || order.status === 'cancelled'
-  );
+  const formatCurrency = (amount: number) => {
+    return `RD$ ${amount.toFixed(2)}`;
+  };
 
   const handleTrackOrder = (order: Order) => {
-    const trackingSteps = [
-      { step: 'Pedido Recibido', completed: true, date: order.orderDate },
-      { step: 'Preparando', completed: order.status !== 'pending', date: order.status !== 'pending' ? order.orderDate : null },
-      { step: 'En Tránsito', completed: order.status === 'in_progress' || order.status === 'delivered', date: order.status === 'in_progress' || order.status === 'delivered' ? order.orderDate : null },
-      { step: 'Entregado', completed: order.status === 'delivered', date: order.deliveryDate },
-    ];
-
-    const trackingInfo = trackingSteps.map(step => 
-      `${step.completed ? '✅' : '⏳'} ${step.step}${step.date ? ` - ${formatDate(step.date)}` : ''}`
-    ).join('\n');
-
-    Alert.alert(
-      `Seguimiento - ${order.trackingNumber}`,
-      `Estado Actual: ${getStatusText(order.status)}\n\n${trackingInfo}${order.deliveryDate && order.status !== 'delivered' ? `\n\nEntrega estimada: ${formatDate(order.deliveryDate)}` : ''}`,
-      [
-        { text: 'Cerrar', style: 'cancel' },
-        { text: 'Ver Detalles', onPress: () => console.log('View detailed tracking') },
-      ]
-    );
+    if (order.status === 'in_progress' || order.status === 'confirmed') {
+      router.push(`/delivery-tracking?orderId=${order.id}`);
+    } else {
+      Alert.alert(
+        'Seguimiento no disponible',
+        'El seguimiento en tiempo real solo está disponible para pedidos en proceso de entrega.'
+      );
+    }
   };
 
   const handleReorder = (order: Order) => {
-    const itemsList = order.items.map(item => 
-      `• ${item.vaccineName} (${item.dose}) x${item.quantity}`
-    ).join('\n');
-
     Alert.alert(
-      'Reordenar Pedido',
-      `¿Deseas agregar estos productos al carrito?\n\n${itemsList}\n\nTotal: $${order.totalAmount.toFixed(2)}`,
+      'Reordenar',
+      `¿Deseas agregar los artículos del pedido ${order.id} al carrito?`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Agregar al Carrito', 
+        {
+          text: 'Reordenar',
           onPress: () => {
-            Alert.alert('¡Agregado!', 'Los productos han sido agregados al carrito');
-          }
+            console.log('Reordering:', order.items);
+            Alert.alert('Éxito', 'Artículos agregados al carrito');
+          },
         },
       ]
     );
@@ -191,21 +376,22 @@ export default function OrdersScreen() {
 
   const handleCancelOrder = (order: Order) => {
     if (order.status === 'delivered' || order.status === 'cancelled') {
-      Alert.alert('Error', 'Este pedido no se puede cancelar');
+      Alert.alert('Error', 'No se puede cancelar este pedido');
       return;
     }
 
     Alert.alert(
       'Cancelar Pedido',
-      `¿Estás seguro de que deseas cancelar el pedido ${order.trackingNumber}?`,
+      `¿Estás seguro de que deseas cancelar el pedido ${order.id}?`,
       [
         { text: 'No', style: 'cancel' },
-        { 
-          text: 'Sí, Cancelar', 
+        {
+          text: 'Sí, Cancelar',
           style: 'destructive',
           onPress: () => {
+            console.log('Cancelling order:', order.id);
             Alert.alert('Pedido Cancelado', 'Tu pedido ha sido cancelado exitosamente');
-          }
+          },
         },
       ]
     );
@@ -214,311 +400,168 @@ export default function OrdersScreen() {
   const handleDownloadInvoice = (order: Order) => {
     Alert.alert(
       'Descargar Factura',
-      `¿Deseas descargar la factura del pedido ${order.trackingNumber}?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Descargar', 
-          onPress: () => {
-            Alert.alert('Descargando...', 'La factura se está descargando');
-          }
-        },
-      ]
+      `Descargando factura del pedido ${order.id}...`,
+      [{ text: 'OK' }]
+    );
+    console.log('Downloading invoice for order:', order.id);
+  };
+
+  const renderOrderCard = (order: Order) => {
+    const canTrack = order.status === 'in_progress' || order.status === 'confirmed';
+    const canCancel = order.status === 'pending' || order.status === 'confirmed';
+    
+    return (
+      <View key={order.id} style={styles.orderCard}>
+        <View style={styles.orderHeader}>
+          <View style={styles.orderInfo}>
+            <Text style={styles.orderNumber}>#{order.id}</Text>
+            <Text style={styles.orderDate}>
+              Pedido el {formatDate(order.orderDate)}
+            </Text>
+            <Text style={styles.orderAmount}>
+              {formatCurrency(order.totalAmount)}
+            </Text>
+          </View>
+          <View style={styles.statusContainer}>
+            <View
+              style={[
+                styles.statusBadge,
+                { backgroundColor: getStatusColor(order.status) },
+              ]}
+            >
+              <Text style={styles.statusText}>
+                {getStatusText(order.status)}
+              </Text>
+            </View>
+            <IconSymbol
+              name={getStatusIcon(order.status)}
+              size={24}
+              color={getStatusColor(order.status)}
+              style={styles.statusIcon}
+            />
+          </View>
+        </View>
+
+        <View style={styles.orderItems}>
+          {order.items.map((item, index) => (
+            <View key={index} style={styles.itemRow}>
+              <Text style={styles.itemName}>
+                {item.vaccineName} - {item.dose}
+              </Text>
+              <Text style={styles.itemQuantity}>x{item.quantity}</Text>
+              <Text style={styles.itemPrice}>
+                {formatCurrency(item.price * item.quantity)}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.orderActions}>
+          {canTrack && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.trackButton]}
+              onPress={() => handleTrackOrder(order)}
+            >
+              <Text style={[styles.actionButtonText, styles.trackButtonText]}>
+                Rastrear
+              </Text>
+            </TouchableOpacity>
+          )}
+          
+          <TouchableOpacity
+            style={[styles.actionButton, styles.reorderButton]}
+            onPress={() => handleReorder(order)}
+          >
+            <Text style={[styles.actionButtonText, styles.reorderButtonText]}>
+              Reordenar
+            </Text>
+          </TouchableOpacity>
+
+          {canCancel && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.cancelButton]}
+              onPress={() => handleCancelOrder(order)}
+            >
+              <Text style={[styles.actionButtonText, styles.cancelButtonText]}>
+                Cancelar
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            style={[styles.actionButton, styles.downloadButton]}
+            onPress={() => handleDownloadInvoice(order)}
+          >
+            <Text style={[styles.actionButtonText, styles.downloadButtonText]}>
+              Factura
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     );
   };
 
-  const renderOrderCard = (order: Order) => (
-    <View key={order.id} style={[commonStyles.card, styles.orderCard]}>
-      {/* Order Header */}
-      <View style={styles.orderHeader}>
-        <View style={styles.orderInfo}>
-          <Text style={commonStyles.heading}>Pedido #{order.trackingNumber}</Text>
-          <Text style={commonStyles.textSecondary}>
-            {formatDate(order.orderDate)}
-          </Text>
-        </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) }]}>
-          <IconSymbol 
-            name={getStatusIcon(order.status)} 
-            size={16} 
-            color={colors.card} 
-          />
-          <Text style={styles.statusText}>
-            {getStatusText(order.status)}
-          </Text>
-        </View>
-      </View>
+  const filteredOrders = getFilteredOrders();
 
-      {/* Order Items */}
-      <View style={styles.orderItems}>
-        {order.items.map((item, index) => (
-          <View key={index} style={styles.orderItem}>
-            <View style={styles.itemInfo}>
-              <Text style={commonStyles.text}>{item.vaccineName}</Text>
-              <Text style={commonStyles.textSecondary}>
-                {item.dose} • Cantidad: {item.quantity}
-              </Text>
-            </View>
-            <Text style={styles.itemPrice}>
-              ${(item.price * item.quantity).toFixed(2)}
-            </Text>
-          </View>
-        ))}
-      </View>
-
-      {/* Order Total */}
-      <View style={styles.orderTotal}>
-        <Text style={[commonStyles.heading, { color: colors.primary }]}>
-          Total: ${order.totalAmount.toFixed(2)}
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Mis Pedidos</Text>
+        <Text style={styles.headerSubtitle}>
+          {filteredOrders.length} pedido{filteredOrders.length !== 1 ? 's' : ''}
         </Text>
       </View>
 
-      {/* Order Actions */}
-      <View style={styles.orderActions}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.trackButton]}
-          onPress={() => handleTrackOrder(order)}
-        >
-          <IconSymbol name="location" size={16} color={colors.primary} />
-          <Text style={[styles.actionButtonText, { color: colors.primary }]}>
-            Rastrear
-          </Text>
-        </TouchableOpacity>
-        
-        {order.status === 'delivered' ? (
-          <>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.invoiceButton]}
-              onPress={() => handleDownloadInvoice(order)}
-            >
-              <IconSymbol name="doc.text" size={16} color={colors.secondary} />
-              <Text style={[styles.actionButtonText, { color: colors.secondary }]}>
-                Factura
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.reorderButton]}
-              onPress={() => handleReorder(order)}
-            >
-              <IconSymbol name="arrow.clockwise" size={16} color={colors.card} />
-              <Text style={[styles.actionButtonText, { color: colors.card }]}>
-                Reordenar
-              </Text>
-            </TouchableOpacity>
-          </>
-        ) : order.status !== 'cancelled' ? (
+      {/* Filters */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterContainer}
+        contentContainerStyle={{ paddingRight: spacing.lg }}
+      >
+        {filters.map((filter) => (
           <TouchableOpacity
-            style={[styles.actionButton, styles.cancelButton]}
-            onPress={() => handleCancelOrder(order)}
+            key={filter.id}
+            style={[
+              styles.filterButton,
+              selectedFilter === filter.id && styles.filterButtonActive,
+            ]}
+            onPress={() => setSelectedFilter(filter.id)}
           >
-            <IconSymbol name="xmark.circle" size={16} color={colors.error} />
-            <Text style={[styles.actionButtonText, { color: colors.error }]}>
-              Cancelar
+            <Text
+              style={[
+                styles.filterButtonText,
+                selectedFilter === filter.id && styles.filterButtonTextActive,
+              ]}
+            >
+              {filter.label}
             </Text>
           </TouchableOpacity>
-        ) : null}
-      </View>
-    </View>
-  );
+        ))}
+      </ScrollView>
 
-  return (
-    <SafeAreaView style={commonStyles.safeArea}>
-      <View style={commonStyles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={commonStyles.title}>Mis Pedidos</Text>
-          
-          {/* Tab Selector */}
-          <View style={styles.tabSelector}>
-            <TouchableOpacity
-              style={[
-                styles.tab,
-                selectedTab === 'active' && styles.tabActive
-              ]}
-              onPress={() => setSelectedTab('active')}
-            >
-              <Text style={[
-                styles.tabText,
-                selectedTab === 'active' && styles.tabTextActive
-              ]}>
-                Activos ({activeOrders.length})
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.tab,
-                selectedTab === 'history' && styles.tabActive
-              ]}
-              onPress={() => setSelectedTab('history')}
-            >
-              <Text style={[
-                styles.tabText,
-                selectedTab === 'history' && styles.tabTextActive
-              ]}>
-                Historial ({orderHistory.length})
-              </Text>
-            </TouchableOpacity>
+      {/* Orders List */}
+      <ScrollView style={styles.ordersList} showsVerticalScrollIndicator={false}>
+        {filteredOrders.length > 0 ? (
+          filteredOrders.map(renderOrderCard)
+        ) : (
+          <View style={styles.emptyState}>
+            <IconSymbol
+              name="shippingbox"
+              size={64}
+              color={colors.textTertiary}
+              style={styles.emptyIcon}
+            />
+            <Text style={styles.emptyTitle}>No hay pedidos</Text>
+            <Text style={styles.emptyDescription}>
+              {selectedFilter === 'all'
+                ? 'Aún no has realizado ningún pedido.\n¡Explora nuestro catálogo de vacunas!'
+                : `No tienes pedidos ${filters.find(f => f.id === selectedFilter)?.label.toLowerCase()}.`}
+            </Text>
           </View>
-        </View>
-
-        {/* Orders List */}
-        <ScrollView 
-          style={styles.ordersList}
-          showsVerticalScrollIndicator={false}
-        >
-          {selectedTab === 'active' ? (
-            activeOrders.length > 0 ? (
-              activeOrders.map(renderOrderCard)
-            ) : (
-              <View style={[commonStyles.center, { marginTop: 50 }]}>
-                <IconSymbol name="shippingbox" size={48} color={colors.textSecondary} />
-                <Text style={[commonStyles.text, { marginTop: 16, textAlign: 'center' }]}>
-                  No tienes pedidos activos
-                </Text>
-                <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginTop: 8 }]}>
-                  Explora nuestro catálogo y realiza tu primera compra
-                </Text>
-              </View>
-            )
-          ) : (
-            orderHistory.length > 0 ? (
-              orderHistory.map(renderOrderCard)
-            ) : (
-              <View style={[commonStyles.center, { marginTop: 50 }]}>
-                <IconSymbol name="clock" size={48} color={colors.textSecondary} />
-                <Text style={[commonStyles.text, { marginTop: 16, textAlign: 'center' }]}>
-                  No tienes historial de pedidos
-                </Text>
-              </View>
-            )
-          )}
-        </ScrollView>
-      </View>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
-  tabSelector: {
-    flexDirection: 'row',
-    backgroundColor: colors.background,
-    borderRadius: 12,
-    padding: 4,
-    marginTop: 16,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 8,
-  },
-  tabActive: {
-    backgroundColor: colors.card,
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-    elevation: 2,
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.textSecondary,
-  },
-  tabTextActive: {
-    color: colors.text,
-    fontWeight: '600',
-  },
-  ordersList: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  orderCard: {
-    marginBottom: 16,
-  },
-  orderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  orderInfo: {
-    flex: 1,
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.card,
-    marginLeft: 4,
-  },
-  orderItems: {
-    marginBottom: 16,
-  },
-  orderItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  itemInfo: {
-    flex: 1,
-  },
-  itemPrice: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  orderTotal: {
-    alignItems: 'flex-end',
-    marginBottom: 16,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  orderActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 8,
-    flex: 1,
-    justifyContent: 'center',
-  },
-  trackButton: {
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  reorderButton: {
-    backgroundColor: colors.primary,
-  },
-  invoiceButton: {
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.secondary,
-  },
-  cancelButton: {
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.error,
-  },
-  actionButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 6,
-  },
-});

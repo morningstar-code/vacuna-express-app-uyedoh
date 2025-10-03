@@ -2,54 +2,211 @@
 import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
 
 export const colors = {
-  background: '#F9FAFB',
-  text: '#1F2937',
-  textSecondary: '#6B7280',
-  primary: '#007BFF',
-  secondary: '#6C757D',
-  accent: '#28A745',
+  // Primary palette - Professional blue, white, gray
+  background: '#FAFBFC',
+  backgroundSecondary: '#F8F9FA',
+  text: '#1A202C',
+  textSecondary: '#718096',
+  textTertiary: '#A0AEC0',
+  primary: '#2B6CB0',
+  primaryLight: '#3182CE',
+  primaryDark: '#2C5282',
+  secondary: '#4A5568',
+  accent: '#38A169',
+  accentLight: '#48BB78',
   card: '#FFFFFF',
-  highlight: '#FFC107',
-  border: '#E5E7EB',
-  error: '#DC2626',
-  success: '#059669',
-  warning: '#D97706',
+  cardSecondary: '#F7FAFC',
+  highlight: '#ED8936',
+  border: '#E2E8F0',
+  borderLight: '#EDF2F7',
+  error: '#E53E3E',
+  errorLight: '#FC8181',
+  success: '#38A169',
+  successLight: '#68D391',
+  warning: '#D69E2E',
+  warningLight: '#F6E05E',
+  info: '#3182CE',
+  infoLight: '#63B3ED',
+  
+  // Semantic colors
+  delivery: '#38A169',
+  pending: '#D69E2E',
+  completed: '#38A169',
+  cancelled: '#E53E3E',
+  
+  // Gradients
+  primaryGradient: ['#2B6CB0', '#3182CE'],
+  successGradient: ['#38A169', '#48BB78'],
+  warningGradient: ['#D69E2E', '#F6E05E'],
+};
+
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 24,
+  xxxl: 32,
+};
+
+export const borderRadius = {
+  sm: 6,
+  md: 8,
+  lg: 12,
+  xl: 16,
+  xxl: 20,
+  full: 9999,
+};
+
+export const shadows = {
+  sm: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  md: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  lg: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  xl: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+};
+
+export const typography = {
+  h1: {
+    fontSize: 32,
+    fontWeight: '700' as const,
+    lineHeight: 40,
+  },
+  h2: {
+    fontSize: 28,
+    fontWeight: '600' as const,
+    lineHeight: 36,
+  },
+  h3: {
+    fontSize: 24,
+    fontWeight: '600' as const,
+    lineHeight: 32,
+  },
+  h4: {
+    fontSize: 20,
+    fontWeight: '600' as const,
+    lineHeight: 28,
+  },
+  h5: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    lineHeight: 24,
+  },
+  h6: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    lineHeight: 22,
+  },
+  body1: {
+    fontSize: 16,
+    fontWeight: '400' as const,
+    lineHeight: 24,
+  },
+  body2: {
+    fontSize: 14,
+    fontWeight: '400' as const,
+    lineHeight: 20,
+  },
+  caption: {
+    fontSize: 12,
+    fontWeight: '400' as const,
+    lineHeight: 16,
+  },
+  button: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    lineHeight: 20,
+  },
 };
 
 export const buttonStyles = StyleSheet.create({
   primary: {
     backgroundColor: colors.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.sm,
+  },
+  primaryLarge: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.xxl,
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.md,
   },
   secondary: {
     backgroundColor: colors.secondary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.sm,
   },
   accent: {
     backgroundColor: colors.accent,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.sm,
   },
   outline: {
     backgroundColor: 'transparent',
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: colors.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  ghost: {
+    backgroundColor: 'transparent',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  small: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.sm,
+  },
+  large: {
+    paddingHorizontal: spacing.xxl,
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.lg,
   },
 });
 
@@ -64,107 +221,253 @@ export const commonStyles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
   },
+  contentPadded: {
+    flex: 1,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.xl,
+  },
+  
+  // Cards
   card: {
     backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 8,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
-    elevation: 3,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginVertical: spacing.sm,
+    ...shadows.md,
     borderWidth: 1,
     borderColor: colors.border,
   },
+  cardElevated: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginVertical: spacing.sm,
+    ...shadows.lg,
+  },
+  cardFlat: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginVertical: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  cardCompact: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginVertical: spacing.xs,
+    ...shadows.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  
+  // Typography
   title: {
-    fontSize: 28,
-    fontWeight: '700',
+    ...typography.h2,
     color: colors.text,
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   subtitle: {
-    fontSize: 20,
-    fontWeight: '600',
+    ...typography.h4,
     color: colors.text,
-    marginBottom: 6,
+    marginBottom: spacing.xs,
   },
   heading: {
-    fontSize: 18,
-    fontWeight: '600',
+    ...typography.h5,
     color: colors.text,
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   text: {
-    fontSize: 16,
+    ...typography.body1,
     color: colors.text,
-    lineHeight: 24,
   },
   textSecondary: {
-    fontSize: 14,
+    ...typography.body2,
     color: colors.textSecondary,
-    lineHeight: 20,
+  },
+  textTertiary: {
+    ...typography.caption,
+    color: colors.textTertiary,
   },
   textSmall: {
-    fontSize: 12,
+    ...typography.caption,
     color: colors.textSecondary,
-    lineHeight: 16,
   },
-  buttonText: {
-    fontSize: 16,
+  textBold: {
     fontWeight: '600',
+  },
+  textCenter: {
+    textAlign: 'center',
+  },
+  
+  // Button text styles
+  buttonText: {
+    ...typography.button,
     color: colors.card,
   },
   buttonTextOutline: {
-    fontSize: 16,
-    fontWeight: '600',
+    ...typography.button,
     color: colors.primary,
   },
+  buttonTextGhost: {
+    ...typography.button,
+    color: colors.primary,
+  },
+  
+  // Input styles
   input: {
     backgroundColor: colors.card,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: colors.border,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    ...typography.body1,
     color: colors.text,
-    marginVertical: 8,
+    marginVertical: spacing.sm,
   },
   inputFocused: {
     borderColor: colors.primary,
-    boxShadow: '0px 0px 0px 3px rgba(0, 123, 255, 0.1)',
+    ...shadows.sm,
   },
+  inputError: {
+    borderColor: colors.error,
+  },
+  
+  // Layout helpers
   row: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  spaceBetween: {
+  rowSpaceBetween: {
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  rowCenter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  column: {
+    flexDirection: 'column',
   },
   center: {
     alignItems: 'center',
     justifyContent: 'center',
   },
+  spaceBetween: {
+    justifyContent: 'space-between',
+  },
+  spaceAround: {
+    justifyContent: 'space-around',
+  },
+  spaceEvenly: {
+    justifyContent: 'space-evenly',
+  },
+  
+  // Badges and status indicators
   badge: {
     backgroundColor: colors.primary,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
     alignSelf: 'flex-start',
   },
   badgeText: {
-    fontSize: 12,
+    ...typography.caption,
     fontWeight: '600',
     color: colors.card,
   },
+  badgeSuccess: {
+    backgroundColor: colors.success,
+  },
+  badgeWarning: {
+    backgroundColor: colors.warning,
+  },
+  badgeError: {
+    backgroundColor: colors.error,
+  },
+  badgeSecondary: {
+    backgroundColor: colors.secondary,
+  },
+  
+  // Dividers
   divider: {
     height: 1,
     backgroundColor: colors.border,
-    marginVertical: 16,
+    marginVertical: spacing.lg,
   },
-  shadow: {
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
-    elevation: 3,
+  dividerThick: {
+    height: 2,
+    backgroundColor: colors.border,
+    marginVertical: spacing.lg,
   },
+  
+  // Shadows
+  shadow: shadows.md,
+  shadowSm: shadows.sm,
+  shadowLg: shadows.lg,
+  shadowXl: shadows.xl,
+  
+  // Spacing utilities
+  mt1: { marginTop: spacing.xs },
+  mt2: { marginTop: spacing.sm },
+  mt3: { marginTop: spacing.md },
+  mt4: { marginTop: spacing.lg },
+  mt5: { marginTop: spacing.xl },
+  mt6: { marginTop: spacing.xxl },
+  
+  mb1: { marginBottom: spacing.xs },
+  mb2: { marginBottom: spacing.sm },
+  mb3: { marginBottom: spacing.md },
+  mb4: { marginBottom: spacing.lg },
+  mb5: { marginBottom: spacing.xl },
+  mb6: { marginBottom: spacing.xxl },
+  
+  ml1: { marginLeft: spacing.xs },
+  ml2: { marginLeft: spacing.sm },
+  ml3: { marginLeft: spacing.md },
+  ml4: { marginLeft: spacing.lg },
+  ml5: { marginLeft: spacing.xl },
+  ml6: { marginLeft: spacing.xxl },
+  
+  mr1: { marginRight: spacing.xs },
+  mr2: { marginRight: spacing.sm },
+  mr3: { marginRight: spacing.md },
+  mr4: { marginRight: spacing.lg },
+  mr5: { marginRight: spacing.xl },
+  mr6: { marginRight: spacing.xxl },
+  
+  pt1: { paddingTop: spacing.xs },
+  pt2: { paddingTop: spacing.sm },
+  pt3: { paddingTop: spacing.md },
+  pt4: { paddingTop: spacing.lg },
+  pt5: { paddingTop: spacing.xl },
+  pt6: { paddingTop: spacing.xxl },
+  
+  pb1: { paddingBottom: spacing.xs },
+  pb2: { paddingBottom: spacing.sm },
+  pb3: { paddingBottom: spacing.md },
+  pb4: { paddingBottom: spacing.lg },
+  pb5: { paddingBottom: spacing.xl },
+  pb6: { paddingBottom: spacing.xxl },
+  
+  pl1: { paddingLeft: spacing.xs },
+  pl2: { paddingLeft: spacing.sm },
+  pl3: { paddingLeft: spacing.md },
+  pl4: { paddingLeft: spacing.lg },
+  pl5: { paddingLeft: spacing.xl },
+  pl6: { paddingLeft: spacing.xxl },
+  
+  pr1: { paddingRight: spacing.xs },
+  pr2: { paddingRight: spacing.sm },
+  pr3: { paddingRight: spacing.md },
+  pr4: { paddingRight: spacing.lg },
+  pr5: { paddingRight: spacing.xl },
+  pr6: { paddingRight: spacing.xxl },
 });

@@ -1,5 +1,4 @@
 
-import React from 'react';
 import {
   View,
   Text,
@@ -7,82 +6,329 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
+  Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, router } from 'expo-router';
-import { colors, commonStyles } from '@/styles/commonStyles';
-import { IconSymbol } from '@/components/IconSymbol';
+import { colors, commonStyles, spacing, borderRadius, shadows, typography } from '@/styles/commonStyles';
 import { getActivePromotions, sampleNotifications } from '@/data/vaccines';
+import React from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { IconSymbol } from '@/components/IconSymbol';
+import { Stack, router } from 'expo-router';
+
+const { width } = Dimensions.get('window');
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  header: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.xxl,
+    borderBottomLeftRadius: borderRadius.xxl,
+    borderBottomRightRadius: borderRadius.xxl,
+  },
+  headerContent: {
+    marginTop: spacing.md,
+  },
+  welcomeText: {
+    ...typography.h3,
+    color: colors.card,
+    marginBottom: spacing.xs,
+  },
+  userText: {
+    ...typography.body1,
+    color: colors.card,
+    opacity: 0.9,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: spacing.lg,
+    right: spacing.lg,
+    backgroundColor: colors.error,
+    borderRadius: borderRadius.full,
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: {
+    color: colors.card,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  quickActions: {
+    marginTop: -spacing.xxl,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+  actionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+  },
+  actionCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    width: (width - spacing.lg * 3) / 2,
+    alignItems: 'center',
+    ...shadows.md,
+  },
+  actionIcon: {
+    marginBottom: spacing.md,
+  },
+  actionLabel: {
+    ...typography.body2,
+    fontWeight: '600',
+    color: colors.text,
+    textAlign: 'center',
+  },
+  actionSubtitle: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginTop: spacing.xs,
+  },
+  section: {
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.xl,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  sectionTitle: {
+    ...typography.h5,
+    color: colors.text,
+  },
+  sectionAction: {
+    ...typography.body2,
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  promotionCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginRight: spacing.md,
+    width: width * 0.8,
+    ...shadows.md,
+  },
+  promotionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  promotionIcon: {
+    marginRight: spacing.md,
+  },
+  promotionTitle: {
+    ...typography.h6,
+    color: colors.text,
+    flex: 1,
+  },
+  promotionDescription: {
+    ...typography.body2,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+    lineHeight: 20,
+  },
+  promotionFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  promotionDiscount: {
+    ...typography.h6,
+    color: colors.success,
+    fontWeight: '700',
+  },
+  promotionButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+  },
+  promotionButtonText: {
+    ...typography.body2,
+    color: colors.card,
+    fontWeight: '600',
+  },
+  categoryCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginRight: spacing.md,
+    width: width * 0.4,
+    alignItems: 'center',
+    ...shadows.md,
+  },
+  categoryIcon: {
+    marginBottom: spacing.md,
+  },
+  categoryTitle: {
+    ...typography.body1,
+    fontWeight: '600',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
+  categorySubtitle: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  statsContainer: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    ...shadows.md,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statValue: {
+    ...typography.h4,
+    color: colors.primary,
+    fontWeight: '700',
+    marginBottom: spacing.xs,
+  },
+  statLabel: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  recentActivity: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    ...shadows.md,
+  },
+  activityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  activityIcon: {
+    marginRight: spacing.md,
+  },
+  activityContent: {
+    flex: 1,
+  },
+  activityTitle: {
+    ...typography.body2,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  activityTime: {
+    ...typography.caption,
+    color: colors.textSecondary,
+  },
+});
 
 export default function HomeScreen() {
   const activePromotions = getActivePromotions();
-  const unreadNotifications = sampleNotifications.filter(n => !n.isRead);
+  const unreadNotifications = sampleNotifications.filter(n => !n.isRead).length;
 
   const quickActions = [
     {
-      title: 'Explorar Vacunas',
-      description: 'Ver catálogo completo',
-      icon: 'list.bullet',
+      id: 'catalog',
+      label: 'Catálogo',
+      subtitle: 'Explorar vacunas',
+      icon: 'list.bullet.rectangle',
       color: colors.primary,
       route: '/(tabs)/catalog',
     },
     {
-      title: 'Ofertas Especiales',
-      description: `${activePromotions.length} promociones activas`,
-      icon: 'tag.fill',
-      color: colors.warning,
-      route: '/(tabs)/promotions',
-      badge: activePromotions.length > 0 ? activePromotions.length : undefined,
-    },
-    {
-      title: 'Mis Pedidos',
-      description: 'Seguir mis órdenes',
+      id: 'orders',
+      label: 'Mis Pedidos',
+      subtitle: 'Ver estado',
       icon: 'shippingbox.fill',
-      color: colors.accent,
+      color: colors.success,
       route: '/(tabs)/orders',
     },
     {
-      title: 'Educación',
-      description: 'Aprende sobre vacunas',
-      icon: 'book.fill',
-      color: colors.secondary,
-      route: '/(tabs)/education',
-    },
-    {
-      title: 'Mis Vacunas',
-      description: 'Historial y certificados',
-      icon: 'heart.text.square.fill',
-      color: '#FF69B4',
-      route: '/vaccination-records',
-    },
-    {
-      title: 'Citas Médicas',
-      description: 'Programar citas',
-      icon: 'calendar.badge.clock',
-      color: '#9B59B6',
-      route: '/appointments',
-    },
-    {
-      title: 'Programa de Lealtad',
-      description: 'Puntos y recompensas',
-      icon: 'star.circle.fill',
-      color: '#F39C12',
-      route: '/loyalty-program',
-    },
-    {
-      title: 'Referir Amigos',
-      description: 'Gana dinero',
+      id: 'family',
+      label: 'Familia',
+      subtitle: 'Gestionar perfiles',
       icon: 'person.2.fill',
-      color: '#27AE60',
-      route: '/referral-program',
+      color: colors.accent,
+      route: '/family-profiles',
+    },
+    {
+      id: 'appointments',
+      label: 'Citas',
+      subtitle: 'Programar',
+      icon: 'calendar',
+      color: colors.warning,
+      route: '/appointments',
     },
   ];
 
   const categories = [
-    { name: 'Universal', count: 2, color: colors.primary },
-    { name: 'Niños', count: 9, color: colors.accent },
-    { name: 'Adolescentes', count: 3, color: colors.highlight },
-    { name: 'Adultos', count: 5, color: colors.secondary },
+    {
+      id: 'universal',
+      title: 'Universal',
+      subtitle: 'Todas las edades',
+      icon: 'globe',
+      color: colors.primary,
+    },
+    {
+      id: 'children',
+      title: 'Niños',
+      subtitle: '0-12 años',
+      icon: 'figure.child.circle',
+      color: colors.success,
+    },
+    {
+      id: 'teens',
+      title: 'Adolescentes',
+      subtitle: '13-17 años',
+      icon: 'figure.walk',
+      color: colors.warning,
+    },
+    {
+      id: 'adults',
+      title: 'Adultos',
+      subtitle: '18+ años',
+      icon: 'person.fill',
+      color: colors.accent,
+    },
+  ];
+
+  const recentActivities = [
+    {
+      id: '1',
+      title: 'Pedido #VE-2024-001 entregado',
+      time: 'Hace 2 horas',
+      icon: 'checkmark.circle.fill',
+      color: colors.success,
+    },
+    {
+      id: '2',
+      title: 'Recordatorio: Refuerzo Tdap',
+      time: 'Hace 1 día',
+      icon: 'bell.fill',
+      color: colors.warning,
+    },
+    {
+      id: '3',
+      title: 'Nueva promoción disponible',
+      time: 'Hace 2 días',
+      icon: 'tag.fill',
+      color: colors.primary,
+    },
   ];
 
   const handleQuickAction = (route: string) => {
@@ -90,413 +336,186 @@ export default function HomeScreen() {
   };
 
   const handleCategoryPress = (category: string) => {
-    router.push({
-      pathname: '/(tabs)/catalog',
-      params: { category },
-    } as any);
+    router.push(`/(tabs)/catalog?category=${category}`);
+  };
+
+  const handleNotifications = () => {
+    router.push('/(tabs)/notifications');
   };
 
   return (
-    <SafeAreaView style={commonStyles.safeArea}>
-      {Platform.OS === 'ios' && (
-        <Stack.Screen
-          options={{
-            title: 'VacunaExpress',
-            headerLargeTitle: true,
-          }}
-        />
-      )}
+    <SafeAreaView style={styles.container}>
+      <Stack.Screen options={{ headerShown: false }} />
       
-      <ScrollView 
-        style={styles.container}
-        contentContainerStyle={[
-          styles.scrollContent,
-          Platform.OS !== 'ios' && styles.scrollContentWithTabBar
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Welcome Section */}
-        <View style={styles.welcomeSection}>
-          <View style={styles.welcomeHeader}>
-            <View>
-              <Text style={[commonStyles.title, styles.welcomeTitle]}>
-                ¡Bienvenido!
-              </Text>
-              <Text style={[commonStyles.textSecondary, styles.welcomeSubtitle]}>
-                Distribución de vacunas a domicilio
-              </Text>
-            </View>
-            <View style={styles.headerActions}>
-              <TouchableOpacity 
-                style={styles.notificationButton}
-                onPress={() => router.push('/(tabs)/notifications')}
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <Text style={styles.welcomeText}>¡Hola, María!</Text>
+            <Text style={styles.userText}>
+              Mantén tu salud al día con VacunaExpress
+            </Text>
+          </View>
+          
+          {unreadNotifications > 0 && (
+            <TouchableOpacity
+              style={styles.notificationBadge}
+              onPress={handleNotifications}
+            >
+              <Text style={styles.badgeText}>{unreadNotifications}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.quickActions}>
+          <View style={styles.actionsGrid}>
+            {quickActions.map((action) => (
+              <TouchableOpacity
+                key={action.id}
+                style={styles.actionCard}
+                onPress={() => handleQuickAction(action.route)}
               >
-                <IconSymbol name="bell.fill" size={24} color={colors.primary} />
-                {unreadNotifications.length > 0 && (
-                  <View style={styles.notificationBadge}>
-                    <Text style={styles.notificationBadgeText}>
-                      {unreadNotifications.length}
-                    </Text>
-                  </View>
-                )}
+                <IconSymbol
+                  name={action.icon}
+                  size={32}
+                  color={action.color}
+                  style={styles.actionIcon}
+                />
+                <Text style={styles.actionLabel}>{action.label}</Text>
+                <Text style={styles.actionSubtitle}>{action.subtitle}</Text>
               </TouchableOpacity>
-              <View style={styles.logoContainer}>
-                <IconSymbol name="cross.fill" size={32} color={colors.primary} />
-              </View>
-            </View>
+            ))}
           </View>
         </View>
 
-        {/* Active Promotions Banner */}
+        {/* Active Promotions */}
         {activePromotions.length > 0 && (
-          <View style={styles.promotionBanner}>
-            <View style={[commonStyles.card, styles.promotionCard]}>
-              <View style={styles.promotionHeader}>
-                <IconSymbol name="tag.fill" size={20} color={colors.warning} />
-                <Text style={[commonStyles.heading, { marginLeft: 8 }]}>
-                  ¡Ofertas Especiales!
-                </Text>
-              </View>
-              <Text style={commonStyles.textSecondary}>
-                {activePromotions[0].title} - {activePromotions[0].discountValue}% de descuento
-              </Text>
-              <TouchableOpacity 
-                style={styles.promotionButton}
-                onPress={() => router.push('/(tabs)/promotions')}
-              >
-                <Text style={[commonStyles.text, { color: colors.primary }]}>
-                  Ver todas las ofertas
-                </Text>
-                <IconSymbol name="arrow.right" size={16} color={colors.primary} />
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Ofertas Especiales</Text>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/promotions')}>
+                <Text style={styles.sectionAction}>Ver todas</Text>
               </TouchableOpacity>
             </View>
+            
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {activePromotions.slice(0, 3).map((promotion) => (
+                <View key={promotion.id} style={styles.promotionCard}>
+                  <View style={styles.promotionHeader}>
+                    <IconSymbol
+                      name="tag.fill"
+                      size={24}
+                      color={colors.primary}
+                      style={styles.promotionIcon}
+                    />
+                    <Text style={styles.promotionTitle}>{promotion.title}</Text>
+                  </View>
+                  
+                  <Text style={styles.promotionDescription}>
+                    {promotion.description}
+                  </Text>
+                  
+                  <View style={styles.promotionFooter}>
+                    <Text style={styles.promotionDiscount}>
+                      {promotion.discountValue}% OFF
+                    </Text>
+                    <TouchableOpacity style={styles.promotionButton}>
+                      <Text style={styles.promotionButtonText}>Usar</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
           </View>
         )}
 
-        {/* Quick Actions */}
+        {/* Categories */}
         <View style={styles.section}>
-          <Text style={[commonStyles.heading, styles.sectionTitle]}>
-            Acciones Rápidas
-          </Text>
-          <View style={styles.quickActionsGrid}>
-            {quickActions.map((action, index) => (
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Categorías</Text>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/catalog')}>
+              <Text style={styles.sectionAction}>Ver catálogo</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {categories.map((category) => (
               <TouchableOpacity
-                key={index}
-                style={[styles.quickActionCard, commonStyles.card]}
-                onPress={() => handleQuickAction(action.route)}
+                key={category.id}
+                style={styles.categoryCard}
+                onPress={() => handleCategoryPress(category.id)}
               >
-                <View style={[styles.quickActionIcon, { backgroundColor: action.color }]}>
-                  <IconSymbol name={action.icon as any} size={24} color={colors.card} />
-                  {action.badge && (
-                    <View style={styles.actionBadge}>
-                      <Text style={styles.actionBadgeText}>{action.badge}</Text>
-                    </View>
-                  )}
-                </View>
-                <Text style={[commonStyles.heading, styles.quickActionTitle]}>
-                  {action.title}
-                </Text>
-                <Text style={[commonStyles.textSecondary, styles.quickActionDescription]}>
-                  {action.description}
-                </Text>
+                <IconSymbol
+                  name={category.icon}
+                  size={32}
+                  color={category.color}
+                  style={styles.categoryIcon}
+                />
+                <Text style={styles.categoryTitle}>{category.title}</Text>
+                <Text style={styles.categorySubtitle}>{category.subtitle}</Text>
               </TouchableOpacity>
             ))}
+          </ScrollView>
+        </View>
+
+        {/* Health Stats */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Tu Progreso</Text>
+            <TouchableOpacity onPress={() => router.push('/vaccination-records')}>
+              <Text style={styles.sectionAction}>Ver historial</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.statsContainer}>
+            <View style={styles.statsGrid}>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>12</Text>
+                <Text style={styles.statLabel}>Vacunas{'\n'}Completadas</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>3</Text>
+                <Text style={styles.statLabel}>Próximas{'\n'}Dosis</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>85%</Text>
+                <Text style={styles.statLabel}>Cobertura{'\n'}Familiar</Text>
+              </View>
+            </View>
           </View>
         </View>
 
-        {/* Categories Overview */}
+        {/* Recent Activity */}
         <View style={styles.section}>
-          <Text style={[commonStyles.heading, styles.sectionTitle]}>
-            Categorías de Vacunas
-          </Text>
-          <View style={styles.categoriesGrid}>
-            {categories.map((category, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[styles.categoryCard, commonStyles.card]}
-                onPress={() => handleCategoryPress(category.name)}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Actividad Reciente</Text>
+          </View>
+          
+          <View style={styles.recentActivity}>
+            {recentActivities.map((activity, index) => (
+              <View
+                key={activity.id}
+                style={[
+                  styles.activityItem,
+                  index === recentActivities.length - 1 && { borderBottomWidth: 0 },
+                ]}
               >
-                <View style={[styles.categoryIndicator, { backgroundColor: category.color }]} />
-                <View style={styles.categoryContent}>
-                  <Text style={[commonStyles.heading, styles.categoryName]}>
-                    {category.name}
-                  </Text>
-                  <Text style={[commonStyles.textSecondary, styles.categoryCount]}>
-                    {category.count} vacunas disponibles
-                  </Text>
+                <IconSymbol
+                  name={activity.icon}
+                  size={20}
+                  color={activity.color}
+                  style={styles.activityIcon}
+                />
+                <View style={styles.activityContent}>
+                  <Text style={styles.activityTitle}>{activity.title}</Text>
+                  <Text style={styles.activityTime}>{activity.time}</Text>
                 </View>
-                <IconSymbol name="chevron.right" size={16} color={colors.textSecondary} />
-              </TouchableOpacity>
+              </View>
             ))}
-          </View>
-        </View>
-
-        {/* Features Overview */}
-        <View style={styles.section}>
-          <Text style={[commonStyles.heading, styles.sectionTitle]}>
-            Características Principales
-          </Text>
-          <View style={styles.featuresGrid}>
-            <View style={[commonStyles.card, styles.featureCard]}>
-              <IconSymbol name="shield.checkered" size={24} color={colors.accent} />
-              <Text style={[commonStyles.text, { fontWeight: '600', marginTop: 8 }]}>
-                Vacunas Certificadas
-              </Text>
-              <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginTop: 4 }]}>
-                Productos certificados y refrigerados
-              </Text>
-            </View>
-            <View style={[commonStyles.card, styles.featureCard]}>
-              <IconSymbol name="truck.box.fill" size={24} color={colors.primary} />
-              <Text style={[commonStyles.text, { fontWeight: '600', marginTop: 8 }]}>
-                Entrega Rápida
-              </Text>
-              <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginTop: 4 }]}>
-                24-48 horas a domicilio
-              </Text>
-            </View>
-            <View style={[commonStyles.card, styles.featureCard]}>
-              <IconSymbol name="star.circle.fill" size={24} color={colors.warning} />
-              <Text style={[commonStyles.text, { fontWeight: '600', marginTop: 8 }]}>
-                Programa de Lealtad
-              </Text>
-              <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginTop: 4 }]}>
-                Puntos y recompensas
-              </Text>
-            </View>
-            <View style={[commonStyles.card, styles.featureCard]}>
-              <IconSymbol name="building.2.fill" size={24} color={colors.secondary} />
-              <Text style={[commonStyles.text, { fontWeight: '600', marginTop: 8 }]}>
-                Soluciones Corporativas
-              </Text>
-              <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginTop: 4 }]}>
-                Para empresas y clínicas
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Info Section */}
-        <View style={[styles.section, styles.infoSection]}>
-          <View style={[commonStyles.card, styles.infoCard]}>
-            <View style={styles.infoHeader}>
-              <IconSymbol name="info.circle.fill" size={24} color={colors.primary} />
-              <Text style={[commonStyles.heading, styles.infoTitle]}>
-                Información Importante
-              </Text>
-            </View>
-            <Text style={[commonStyles.text, styles.infoText]}>
-              • Entrega a domicilio en 24-48 horas{'\n'}
-              • Vacunas certificadas y refrigeradas{'\n'}
-              • Seguimiento en tiempo real{'\n'}
-              • Facturación electrónica disponible{'\n'}
-              • Soporte médico especializado{'\n'}
-              • Recordatorios automáticos personalizados
-            </Text>
           </View>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
-  scrollContentWithTabBar: {
-    paddingBottom: 100,
-  },
-  welcomeSection: {
-    marginBottom: 32,
-  },
-  welcomeHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  welcomeTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  welcomeSubtitle: {
-    fontSize: 16,
-    marginTop: 4,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  notificationButton: {
-    width: 48,
-    height: 48,
-    backgroundColor: colors.card,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-    ...commonStyles.shadow,
-  },
-  notificationBadge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    backgroundColor: colors.error,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  notificationBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.card,
-  },
-  logoContainer: {
-    width: 60,
-    height: 60,
-    backgroundColor: colors.card,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...commonStyles.shadow,
-  },
-  promotionBanner: {
-    marginBottom: 32,
-  },
-  promotionCard: {
-    backgroundColor: colors.warning + '10',
-    borderColor: colors.warning,
-    borderWidth: 1,
-  },
-  promotionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  promotionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    marginTop: 12,
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 16,
-    color: colors.text,
-  },
-  quickActionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  quickActionCard: {
-    width: '48%',
-    alignItems: 'center',
-    paddingVertical: 16,
-    marginBottom: 12,
-  },
-  quickActionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-    position: 'relative',
-  },
-  actionBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: colors.error,
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.card,
-  },
-  quickActionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  quickActionDescription: {
-    fontSize: 12,
-    textAlign: 'center',
-  },
-  categoriesGrid: {
-    gap: 12,
-  },
-  categoryCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-  },
-  categoryIndicator: {
-    width: 4,
-    height: 40,
-    borderRadius: 2,
-    marginRight: 16,
-  },
-  categoryContent: {
-    flex: 1,
-  },
-  categoryName: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  categoryCount: {
-    fontSize: 14,
-  },
-  featuresGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  featureCard: {
-    width: '48%',
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
-  infoSection: {
-    marginBottom: 16,
-  },
-  infoCard: {
-    backgroundColor: colors.card,
-  },
-  infoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  infoTitle: {
-    marginLeft: 8,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  infoText: {
-    lineHeight: 22,
-    fontSize: 14,
-  },
-});

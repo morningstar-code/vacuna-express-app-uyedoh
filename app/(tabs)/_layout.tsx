@@ -18,7 +18,7 @@ export default function TabLayout() {
     {
       name: 'catalog',
       route: '/(tabs)/catalog',
-      icon: 'list.bullet',
+      icon: 'list.bullet.rectangle',
       label: 'Catálogo',
     },
     {
@@ -50,16 +50,16 @@ export default function TabLayout() {
           <Label>Inicio</Label>
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name="catalog">
-          <Icon sf="list.bullet" drawable="ic_catalog" />
+          <Icon sf="list.bullet.rectangle" drawable="ic_catalog" />
           <Label>Catálogo</Label>
-        </NativeTabs.Trigger>
-        <NativeTabs.Trigger name="promotions">
-          <Icon sf="tag.fill" drawable="ic_promotions" />
-          <Label>Ofertas</Label>
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name="orders">
           <Icon sf="shippingbox.fill" drawable="ic_orders" />
           <Label>Pedidos</Label>
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="promotions">
+          <Icon sf="tag.fill" drawable="ic_promotions" />
+          <Label>Ofertas</Label>
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name="profile">
           <Icon sf="person.fill" drawable="ic_profile" />
@@ -75,13 +75,14 @@ export default function TabLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          animation: 'none',
+          animation: 'slide_from_right',
+          animationDuration: 200,
         }}
       >
         <Stack.Screen name="(home)" />
         <Stack.Screen name="catalog" />
-        <Stack.Screen name="promotions" />
         <Stack.Screen name="orders" />
+        <Stack.Screen name="promotions" />
         <Stack.Screen name="education" />
         <Stack.Screen name="notifications" />
         <Stack.Screen name="profile" />
