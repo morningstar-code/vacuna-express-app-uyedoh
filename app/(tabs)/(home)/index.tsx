@@ -1,161 +1,292 @@
-import React from "react";
-import { Stack, Link } from "expo-router";
-import { FlatList, Pressable, StyleSheet, View, Text, Alert, Platform } from "react-native";
-import { IconSymbol } from "@/components/IconSymbol";
-import { GlassView } from "expo-glass-effect";
-import { useTheme } from "@react-navigation/native";
 
-const ICON_COLOR = "#007AFF";
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Stack, router } from 'expo-router';
+import { colors, commonStyles } from '@/styles/commonStyles';
+import { IconSymbol } from '@/components/IconSymbol';
 
 export default function HomeScreen() {
-  const theme = useTheme();
-  const modalDemos = [
+  const quickActions = [
     {
-      title: "Standard Modal",
-      description: "Full screen modal presentation",
-      route: "/modal",
-      color: "#007AFF",
+      title: 'Explorar Vacunas',
+      description: 'Ver catálogo completo',
+      icon: 'list.bullet',
+      color: colors.primary,
+      route: '/(tabs)/catalog',
     },
     {
-      title: "Form Sheet",
-      description: "Bottom sheet with detents and grabber",
-      route: "/formsheet",
-      color: "#34C759",
+      title: 'Mis Pedidos',
+      description: 'Seguir mis órdenes',
+      icon: 'shippingbox.fill',
+      color: colors.accent,
+      route: '/(tabs)/orders',
     },
     {
-      title: "Transparent Modal",
-      description: "Overlay without obscuring background",
-      route: "/transparent-modal",
-      color: "#FF9500",
-    }
+      title: 'Mi Perfil',
+      description: 'Gestionar cuenta',
+      icon: 'person.fill',
+      color: colors.secondary,
+      route: '/(tabs)/profile',
+    },
   ];
 
-  const renderModalDemo = ({ item }: { item: (typeof modalDemos)[0] }) => (
-    <GlassView style={[
-      styles.demoCard,
-      Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }
-    ]} glassEffectStyle="regular">
-      <View style={[styles.demoIcon, { backgroundColor: item.color }]}>
-        <IconSymbol name="square.grid.3x3" color="white" size={24} />
-      </View>
-      <View style={styles.demoContent}>
-        <Text style={[styles.demoTitle, { color: theme.colors.text }]}>{item.title}</Text>
-        <Text style={[styles.demoDescription, { color: theme.dark ? '#98989D' : '#666' }]}>{item.description}</Text>
-      </View>
-      <Link href={item.route as any} asChild>
-        <Pressable>
-          <GlassView style={[
-            styles.tryButton,
-            Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)' }
-          ]} glassEffectStyle="clear">
-            <Text style={[styles.tryButtonText, { color: theme.colors.primary }]}>Try It</Text>
-          </GlassView>
-        </Pressable>
-      </Link>
-    </GlassView>
-  );
+  const categories = [
+    { name: 'Universal', count: 2, color: colors.primary },
+    { name: 'Niños', count: 9, color: colors.accent },
+    { name: 'Adolescentes', count: 3, color: colors.highlight },
+    { name: 'Adultos', count: 5, color: colors.secondary },
+  ];
 
-  const renderHeaderRight = () => (
-    <Pressable
-      onPress={() => Alert.alert("Not Implemented", "This feature is not implemented yet")}
-      style={styles.headerButtonContainer}
-    >
-      <IconSymbol name="plus" color={theme.colors.primary} />
-    </Pressable>
-  );
+  const handleQuickAction = (route: string) => {
+    router.push(route as any);
+  };
 
-  const renderHeaderLeft = () => (
-    <Pressable
-      onPress={() => Alert.alert("Not Implemented", "This feature is not implemented yet")}
-      style={styles.headerButtonContainer}
-    >
-      <IconSymbol
-        name="gear"
-        color={theme.colors.primary}
-      />
-    </Pressable>
-  );
+  const handleCategoryPress = (category: string) => {
+    router.push({
+      pathname: '/(tabs)/catalog',
+      params: { category },
+    } as any);
+  };
 
   return (
-    <>
+    <SafeAreaView style={commonStyles.safeArea}>
       {Platform.OS === 'ios' && (
         <Stack.Screen
           options={{
-            title: "Building the app...",
-            headerRight: renderHeaderRight,
-            headerLeft: renderHeaderLeft,
+            title: 'VacunaExpress',
+            headerLargeTitle: true,
           }}
         />
       )}
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <FlatList
-          data={modalDemos}
-          renderItem={renderModalDemo}
-          keyExtractor={(item) => item.route}
-          contentContainerStyle={[
-            styles.listContainer,
-            Platform.OS !== 'ios' && styles.listContainerWithTabBar
-          ]}
-          contentInsetAdjustmentBehavior="automatic"
-          showsVerticalScrollIndicator={false}
-        />
-      </View>
-    </>
+      
+      <ScrollView 
+        style={styles.container}
+        contentContainerStyle={[
+          styles.scrollContent,
+          Platform.OS !== 'ios' && styles.scrollContentWithTabBar
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Welcome Section */}
+        <View style={styles.welcomeSection}>
+          <View style={styles.welcomeHeader}>
+            <View>
+              <Text style={[commonStyles.title, styles.welcomeTitle]}>
+                ¡Bienvenido!
+              </Text>
+              <Text style={[commonStyles.textSecondary, styles.welcomeSubtitle]}>
+                Distribución de vacunas a domicilio
+              </Text>
+            </View>
+            <View style={styles.logoContainer}>
+              <IconSymbol name="cross.fill" size={32} color={colors.primary} />
+            </View>
+          </View>
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.section}>
+          <Text style={[commonStyles.heading, styles.sectionTitle]}>
+            Acciones Rápidas
+          </Text>
+          <View style={styles.quickActionsGrid}>
+            {quickActions.map((action, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[styles.quickActionCard, commonStyles.card]}
+                onPress={() => handleQuickAction(action.route)}
+              >
+                <View style={[styles.quickActionIcon, { backgroundColor: action.color }]}>
+                  <IconSymbol name={action.icon as any} size={24} color={colors.card} />
+                </View>
+                <Text style={[commonStyles.heading, styles.quickActionTitle]}>
+                  {action.title}
+                </Text>
+                <Text style={[commonStyles.textSecondary, styles.quickActionDescription]}>
+                  {action.description}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Categories Overview */}
+        <View style={styles.section}>
+          <Text style={[commonStyles.heading, styles.sectionTitle]}>
+            Categorías de Vacunas
+          </Text>
+          <View style={styles.categoriesGrid}>
+            {categories.map((category, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[styles.categoryCard, commonStyles.card]}
+                onPress={() => handleCategoryPress(category.name)}
+              >
+                <View style={[styles.categoryIndicator, { backgroundColor: category.color }]} />
+                <View style={styles.categoryContent}>
+                  <Text style={[commonStyles.heading, styles.categoryName]}>
+                    {category.name}
+                  </Text>
+                  <Text style={[commonStyles.textSecondary, styles.categoryCount]}>
+                    {category.count} vacunas disponibles
+                  </Text>
+                </View>
+                <IconSymbol name="chevron.right" size={16} color={colors.textSecondary} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Info Section */}
+        <View style={[styles.section, styles.infoSection]}>
+          <View style={[commonStyles.card, styles.infoCard]}>
+            <View style={styles.infoHeader}>
+              <IconSymbol name="info.circle.fill" size={24} color={colors.primary} />
+              <Text style={[commonStyles.heading, styles.infoTitle]}>
+                Información Importante
+              </Text>
+            </View>
+            <Text style={[commonStyles.text, styles.infoText]}>
+              • Entrega a domicilio en 24-48 horas{'\n'}
+              • Vacunas certificadas y refrigeradas{'\n'}
+              • Seguimiento en tiempo real{'\n'}
+              • Facturación electrónica disponible
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor handled dynamically
+    backgroundColor: colors.background,
   },
-  listContainer: {
-    paddingVertical: 16,
+  scrollContent: {
     paddingHorizontal: 16,
+    paddingVertical: 16,
   },
-  listContainerWithTabBar: {
-    paddingBottom: 100, // Extra padding for floating tab bar
+  scrollContentWithTabBar: {
+    paddingBottom: 100,
   },
-  demoCard: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+  welcomeSection: {
+    marginBottom: 32,
+  },
+  welcomeHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  demoIcon: {
+  welcomeTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: colors.text,
+  },
+  welcomeSubtitle: {
+    fontSize: 16,
+    marginTop: 4,
+  },
+  logoContainer: {
+    width: 60,
+    height: 60,
+    backgroundColor: colors.card,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...commonStyles.shadow,
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 16,
+    color: colors.text,
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  quickActionCard: {
+    width: '48%',
+    alignItems: 'center',
+    paddingVertical: 20,
+    marginBottom: 12,
+  },
+  quickActionIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  quickActionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  quickActionDescription: {
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  categoriesGrid: {
+    gap: 12,
+  },
+  categoryCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+  },
+  categoryIndicator: {
+    width: 4,
+    height: 40,
+    borderRadius: 2,
     marginRight: 16,
   },
-  demoContent: {
+  categoryContent: {
     flex: 1,
   },
-  demoTitle: {
-    fontSize: 18,
+  categoryName: {
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 4,
-    // color handled dynamically
+    marginBottom: 2,
   },
-  demoDescription: {
+  categoryCount: {
     fontSize: 14,
-    lineHeight: 18,
-    // color handled dynamically
   },
-  headerButtonContainer: {
-    padding: 6,
+  infoSection: {
+    marginBottom: 16,
   },
-  tryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
+  infoCard: {
+    backgroundColor: colors.card,
   },
-  tryButtonText: {
-    fontSize: 14,
+  infoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  infoTitle: {
+    marginLeft: 8,
+    fontSize: 16,
     fontWeight: '600',
-    // color handled dynamically
+  },
+  infoText: {
+    lineHeight: 22,
+    fontSize: 14,
   },
 });
