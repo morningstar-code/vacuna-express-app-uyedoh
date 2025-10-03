@@ -14,6 +14,7 @@ import { colors, commonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { vaccines, getVaccinesByCategory, getInventoryForVaccine, getPromotionForVaccine } from '@/data/vaccines';
 import { Vaccine } from '@/types/vaccine';
+import { router } from 'expo-router';
 
 const categories = ['Universal', 'Niños', 'Adolescentes', 'Adultos'];
 
@@ -38,23 +39,39 @@ export default function CatalogScreen() {
     const inventory = getInventoryForVaccine(vaccine.id);
     const promotion = getPromotionForVaccine(vaccine.id);
     const isLowStock = inventory && inventory.stockLevel <= inventory.lowStockThreshold;
+    const isOutOfStock = inventory && !inventory.isAvailable;
     const discountedPrice = promotion && vaccine.price 
       ? vaccine.price * (1 - promotion.discountValue / 100) 
       : vaccine.price;
 
     return (
       <View key={vaccine.id} style={[commonStyles.card, styles.vaccineCard]}>
+        {/* Status Badges */}
+        <View style={styles.badgesContainer}>
+          {promotion && (
+            <View style={[styles.promotionBadge, { backgroundColor: colors.warning }]}>
+              <IconSymbol name="tag.fill" size={12} color={colors.card} />
+              <Text style={styles.badgeText}>-{promotion.discountValue}%</Text>
+            </View>
+          )}
+          {isOutOfStock && (
+            <View style={[styles.stockBadge, { backgroundColor: colors.error }]}>
+              <IconSymbol name="exclamationmark.triangle.fill" size={12} color={colors.card} />
+              <Text style={styles.badgeText}>Agotado</Text>
+            </View>
+          )}
+          {isLowStock && !isOutOfStock && (
+            <View style={[styles.stockBadge, { backgroundColor: colors.warning }]}>
+              <IconSymbol name="clock.fill" size={12} color={colors.card} />
+              <Text style={styles.badgeText}>Pocas unidades</Text>
+            </View>
+          )}
+        </View>
+
         <View style={styles.vaccineHeader}>
           <View style={styles.vaccineInfo}>
             <Text style={commonStyles.heading}>{vaccine.name}</Text>
-            <Text style={commonStyles.textSecondary}>{vaccine.ageGroup}</Text>
-            {promotion && (
-              <View style={[commonStyles.badge, { backgroundColor: colors.warning }]}>
-                <Text style={commonStyles.badgeText}>
-                  -{promotion.discountValue}%
-                </Text>
-              </View>
-            )}
+            <Text style={commonStyles.textSecondary}>{vaccine.category} • {vaccine.ageGroup}</Text>
           </View>
           <View style={styles.priceContainer}>
             {promotion && vaccine.price && (
@@ -77,37 +94,78 @@ export default function CatalogScreen() {
           </View>
         </View>
 
-        <View style={styles.stockInfo}>
-          {inventory && (
-            <View style={[commonStyles.row, commonStyles.spaceBetween]}>
+        {/* Enhanced Stock Information */}
+        {inventory && (
+          <View style={styles.stockInfo}>
+            <View style={styles.stockHeader}>
               <Text style={commonStyles.textSmall}>
-                Stock: {inventory.stockLevel} disponibles
+                Stock: {inventory.stockLevel} unidades
               </Text>
-              {isLowStock && (
-                <Text style={[commonStyles.textSmall, { color: colors.warning }]}>
-                  ¡Pocas unidades!
-                </Text>
-              )}
+              <Text style={[
+                commonStyles.textSmall,
+                { 
+                  color: isOutOfStock ? colors.error : isLowStock ? colors.warning : colors.accent,
+                  fontWeight: '600'
+                }
+              ]}>
+                {isOutOfStock ? 'Agotado' : isLowStock ? 'Bajo stock' : 'Disponible'}
+              </Text>
             </View>
-          )}
-        </View>
+            
+            {/* Stock Progress Bar */}
+            <View style={styles.stockProgressBar}>
+              <View
+                style={[
+                  styles.stockProgressFill,
+                  {
+                    width: `${Math.min((inventory.stockLevel / 100) * 100, 100)}%`,
+                    backgroundColor: isOutOfStock ? colors.error : isLowStock ? colors.warning : colors.accent,
+                  },
+                ]}
+              />
+            </View>
+            
+            {inventory.estimatedRestockDate && isOutOfStock && (
+              <Text style={[commonStyles.textSmall, { color: colors.primary, marginTop: 4 }]}>
+                Restock estimado: {new Date(inventory.estimatedRestockDate).toLocaleDateString('es-DO')}
+              </Text>
+            )}
+          </View>
+        )}
 
-        <TouchableOpacity
-          style={[
-            commonStyles.card,
-            { 
-              backgroundColor: inventory?.isAvailable ? colors.primary : colors.secondary,
-              marginTop: 12,
-              padding: 12,
-            }
-          ]}
-          onPress={() => inventory?.isAvailable && addToCart(vaccine.id)}
-          disabled={!inventory?.isAvailable}
-        >
-          <Text style={[commonStyles.buttonText, commonStyles.center]}>
-            {inventory?.isAvailable ? 'Agregar al Carrito' : 'No Disponible'}
-          </Text>
-        </TouchableOpacity>
+        {/* Action Buttons */}
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            style={[
+              styles.addButton,
+              isOutOfStock ? styles.preOrderButton : styles.normalButton
+            ]}
+            onPress={() => addToCart(vaccine.id)}
+          >
+            <IconSymbol 
+              name={isOutOfStock ? "clock.fill" : "cart.badge.plus"} 
+              size={16} 
+              color={colors.card} 
+            />
+            <Text style={styles.addButtonText}>
+              {isOutOfStock ? 'Pre-ordenar' : 'Agregar'}
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={styles.infoButton}
+            onPress={() => Alert.alert(
+              vaccine.name,
+              `Categoría: ${vaccine.category}\nEdad recomendada: ${vaccine.ageGroup}\nDosis disponibles: ${vaccine.doses.map(d => d.name).join(', ')}\n\nVacuna certificada y refrigerada para máxima efectividad. Cumple con todos los estándares internacionales de calidad.`,
+              [
+                { text: 'Cerrar', style: 'cancel' },
+                { text: 'Ver Más Info', onPress: () => router.push('/(tabs)/education') },
+              ]
+            )}
+          >
+            <IconSymbol name="info.circle" size={16} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -251,15 +309,47 @@ const styles = StyleSheet.create({
   },
   vaccineCard: {
     marginBottom: 16,
+    position: 'relative',
+  },
+  badgesContainer: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 1,
+    flexDirection: 'row',
+    gap: 4,
+  },
+  promotionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 8,
+    gap: 2,
+  },
+  stockBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 8,
+    gap: 2,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.card,
   },
   vaccineHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12,
+    marginTop: 8,
   },
   vaccineInfo: {
     flex: 1,
+    paddingRight: 12,
   },
   priceContainer: {
     alignItems: 'flex-end',
@@ -295,7 +385,57 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   stockInfo: {
-    marginBottom: 8,
+    marginBottom: 12,
+  },
+  stockHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  stockProgressBar: {
+    height: 4,
+    backgroundColor: colors.border,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  stockProgressFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  addButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 6,
+  },
+  normalButton: {
+    backgroundColor: colors.primary,
+  },
+  preOrderButton: {
+    backgroundColor: colors.warning,
+  },
+  addButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.card,
+  },
+  infoButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   cartSummary: {
     backgroundColor: colors.card,

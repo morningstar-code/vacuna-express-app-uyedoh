@@ -148,20 +148,81 @@ export default function OrdersScreen() {
   );
 
   const handleTrackOrder = (order: Order) => {
+    const trackingSteps = [
+      { step: 'Pedido Recibido', completed: true, date: order.orderDate },
+      { step: 'Preparando', completed: order.status !== 'pending', date: order.status !== 'pending' ? order.orderDate : null },
+      { step: 'En Tránsito', completed: order.status === 'in_progress' || order.status === 'delivered', date: order.status === 'in_progress' || order.status === 'delivered' ? order.orderDate : null },
+      { step: 'Entregado', completed: order.status === 'delivered', date: order.deliveryDate },
+    ];
+
+    const trackingInfo = trackingSteps.map(step => 
+      `${step.completed ? '✅' : '⏳'} ${step.step}${step.date ? ` - ${formatDate(step.date)}` : ''}`
+    ).join('\n');
+
     Alert.alert(
-      'Seguimiento de Pedido',
-      `Pedido: ${order.trackingNumber}\nEstado: ${getStatusText(order.status)}\nFecha: ${formatDate(order.orderDate)}`,
-      [{ text: 'OK' }]
+      `Seguimiento - ${order.trackingNumber}`,
+      `Estado Actual: ${getStatusText(order.status)}\n\n${trackingInfo}${order.deliveryDate && order.status !== 'delivered' ? `\n\nEntrega estimada: ${formatDate(order.deliveryDate)}` : ''}`,
+      [
+        { text: 'Cerrar', style: 'cancel' },
+        { text: 'Ver Detalles', onPress: () => console.log('View detailed tracking') },
+      ]
     );
   };
 
   const handleReorder = (order: Order) => {
+    const itemsList = order.items.map(item => 
+      `• ${item.vaccineName} (${item.dose}) x${item.quantity}`
+    ).join('\n');
+
     Alert.alert(
-      'Reordenar',
-      '¿Deseas agregar estos productos al carrito?',
+      'Reordenar Pedido',
+      `¿Deseas agregar estos productos al carrito?\n\n${itemsList}\n\nTotal: $${order.totalAmount.toFixed(2)}`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Sí, agregar', onPress: () => console.log('Reordering...') },
+        { 
+          text: 'Agregar al Carrito', 
+          onPress: () => {
+            Alert.alert('¡Agregado!', 'Los productos han sido agregados al carrito');
+          }
+        },
+      ]
+    );
+  };
+
+  const handleCancelOrder = (order: Order) => {
+    if (order.status === 'delivered' || order.status === 'cancelled') {
+      Alert.alert('Error', 'Este pedido no se puede cancelar');
+      return;
+    }
+
+    Alert.alert(
+      'Cancelar Pedido',
+      `¿Estás seguro de que deseas cancelar el pedido ${order.trackingNumber}?`,
+      [
+        { text: 'No', style: 'cancel' },
+        { 
+          text: 'Sí, Cancelar', 
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert('Pedido Cancelado', 'Tu pedido ha sido cancelado exitosamente');
+          }
+        },
+      ]
+    );
+  };
+
+  const handleDownloadInvoice = (order: Order) => {
+    Alert.alert(
+      'Descargar Factura',
+      `¿Deseas descargar la factura del pedido ${order.trackingNumber}?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Descargar', 
+          onPress: () => {
+            Alert.alert('Descargando...', 'La factura se está descargando');
+          }
+        },
       ]
     );
   };
@@ -224,17 +285,38 @@ export default function OrdersScreen() {
           </Text>
         </TouchableOpacity>
         
-        {order.status === 'delivered' && (
+        {order.status === 'delivered' ? (
+          <>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.invoiceButton]}
+              onPress={() => handleDownloadInvoice(order)}
+            >
+              <IconSymbol name="doc.text" size={16} color={colors.secondary} />
+              <Text style={[styles.actionButtonText, { color: colors.secondary }]}>
+                Factura
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.reorderButton]}
+              onPress={() => handleReorder(order)}
+            >
+              <IconSymbol name="arrow.clockwise" size={16} color={colors.card} />
+              <Text style={[styles.actionButtonText, { color: colors.card }]}>
+                Reordenar
+              </Text>
+            </TouchableOpacity>
+          </>
+        ) : order.status !== 'cancelled' ? (
           <TouchableOpacity
-            style={[styles.actionButton, styles.reorderButton]}
-            onPress={() => handleReorder(order)}
+            style={[styles.actionButton, styles.cancelButton]}
+            onPress={() => handleCancelOrder(order)}
           >
-            <IconSymbol name="arrow.clockwise" size={16} color={colors.card} />
-            <Text style={[styles.actionButtonText, { color: colors.card }]}>
-              Reordenar
+            <IconSymbol name="xmark.circle" size={16} color={colors.error} />
+            <Text style={[styles.actionButtonText, { color: colors.error }]}>
+              Cancelar
             </Text>
           </TouchableOpacity>
-        )}
+        ) : null}
       </View>
     </View>
   );
@@ -405,16 +487,16 @@ const styles = StyleSheet.create({
   },
   orderActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 8,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 8,
     flex: 1,
-    marginHorizontal: 4,
+    justifyContent: 'center',
   },
   trackButton: {
     backgroundColor: colors.background,
@@ -424,9 +506,19 @@ const styles = StyleSheet.create({
   reorderButton: {
     backgroundColor: colors.primary,
   },
+  invoiceButton: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.secondary,
+  },
+  cancelButton: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.error,
+  },
   actionButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
-    marginLeft: 8,
+    marginLeft: 6,
   },
 });

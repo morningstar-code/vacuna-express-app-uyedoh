@@ -48,6 +48,34 @@ export default function HomeScreen() {
       color: colors.secondary,
       route: '/(tabs)/education',
     },
+    {
+      title: 'Mis Vacunas',
+      description: 'Historial y certificados',
+      icon: 'heart.text.square.fill',
+      color: '#FF69B4',
+      route: '/vaccination-records',
+    },
+    {
+      title: 'Citas Médicas',
+      description: 'Programar citas',
+      icon: 'calendar.badge.clock',
+      color: '#9B59B6',
+      route: '/appointments',
+    },
+    {
+      title: 'Programa de Lealtad',
+      description: 'Puntos y recompensas',
+      icon: 'star.circle.fill',
+      color: '#F39C12',
+      route: '/loyalty-program',
+    },
+    {
+      title: 'Referir Amigos',
+      description: 'Gana dinero',
+      icon: 'person.2.fill',
+      color: '#27AE60',
+      route: '/referral-program',
+    },
   ];
 
   const categories = [
@@ -203,6 +231,51 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        {/* Features Overview */}
+        <View style={styles.section}>
+          <Text style={[commonStyles.heading, styles.sectionTitle]}>
+            Características Principales
+          </Text>
+          <View style={styles.featuresGrid}>
+            <View style={[commonStyles.card, styles.featureCard]}>
+              <IconSymbol name="shield.checkered" size={24} color={colors.accent} />
+              <Text style={[commonStyles.text, { fontWeight: '600', marginTop: 8 }]}>
+                Vacunas Certificadas
+              </Text>
+              <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginTop: 4 }]}>
+                Productos certificados y refrigerados
+              </Text>
+            </View>
+            <View style={[commonStyles.card, styles.featureCard]}>
+              <IconSymbol name="truck.box.fill" size={24} color={colors.primary} />
+              <Text style={[commonStyles.text, { fontWeight: '600', marginTop: 8 }]}>
+                Entrega Rápida
+              </Text>
+              <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginTop: 4 }]}>
+                24-48 horas a domicilio
+              </Text>
+            </View>
+            <View style={[commonStyles.card, styles.featureCard]}>
+              <IconSymbol name="star.circle.fill" size={24} color={colors.warning} />
+              <Text style={[commonStyles.text, { fontWeight: '600', marginTop: 8 }]}>
+                Programa de Lealtad
+              </Text>
+              <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginTop: 4 }]}>
+                Puntos y recompensas
+              </Text>
+            </View>
+            <View style={[commonStyles.card, styles.featureCard]}>
+              <IconSymbol name="building.2.fill" size={24} color={colors.secondary} />
+              <Text style={[commonStyles.text, { fontWeight: '600', marginTop: 8 }]}>
+                Soluciones Corporativas
+              </Text>
+              <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginTop: 4 }]}>
+                Para empresas y clínicas
+              </Text>
+            </View>
+          </View>
+        </View>
+
         {/* Info Section */}
         <View style={[styles.section, styles.infoSection]}>
           <View style={[commonStyles.card, styles.infoCard]}>
@@ -216,7 +289,9 @@ export default function HomeScreen() {
               • Entrega a domicilio en 24-48 horas{'\n'}
               • Vacunas certificadas y refrigeradas{'\n'}
               • Seguimiento en tiempo real{'\n'}
-              • Facturación electrónica disponible
+              • Facturación electrónica disponible{'\n'}
+              • Soporte médico especializado{'\n'}
+              • Recordatorios automáticos personalizados
             </Text>
           </View>
         </View>
@@ -329,7 +404,7 @@ const styles = StyleSheet.create({
   quickActionCard: {
     width: '48%',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 16,
     marginBottom: 12,
   },
   quickActionIcon: {
@@ -392,6 +467,17 @@ const styles = StyleSheet.create({
   },
   categoryCount: {
     fontSize: 14,
+  },
+  featuresGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  featureCard: {
+    width: '48%',
+    alignItems: 'center',
+    paddingVertical: 16,
   },
   infoSection: {
     marginBottom: 16,

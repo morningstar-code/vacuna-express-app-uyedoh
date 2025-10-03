@@ -428,6 +428,26 @@ export const sampleNotifications: Notification[] = [
     createdAt: '2024-01-17T16:45:00Z',
     relatedOrderId: 'order-12345',
   },
+  {
+    id: 'notif-4',
+    userId: 'user-1',
+    type: 'educational',
+    title: 'Nueva Información sobre VPH',
+    message: 'Conoce más sobre la importancia de la vacuna VPH en adolescentes.',
+    isRead: false,
+    createdAt: '2024-01-19T12:00:00Z',
+    relatedVaccineId: 'vph',
+  },
+  {
+    id: 'notif-5',
+    userId: 'user-1',
+    type: 'reminder',
+    title: 'Vacuna Familiar Pendiente',
+    message: 'Tu hijo Carlos tiene pendiente la segunda dosis de Varicela.',
+    isRead: false,
+    createdAt: '2024-01-21T08:30:00Z',
+    relatedVaccineId: 'varicela',
+  },
 ];
 
 // Helper functions
@@ -453,4 +473,64 @@ export const getInventoryForVaccine = (vaccineId: string) => {
 
 export const getEducationalContentByCategory = (category: string) => {
   return educationalContent.filter(content => content.category === category);
+};
+
+// Sample Corporate Data
+export const sampleCorporateData = {
+  company: {
+    name: 'Empresa ABC S.A.',
+    employees: 150,
+    activeEmployees: 142,
+    vaccinationCoverage: 85,
+  },
+  campaigns: [
+    {
+      id: 'campaign-1',
+      name: 'Campaña Influenza 2024',
+      status: 'active',
+      startDate: '2024-01-15',
+      endDate: '2024-03-15',
+      targetEmployees: 150,
+      vaccinatedEmployees: 128,
+      vaccines: ['influenza'],
+    },
+    {
+      id: 'campaign-2',
+      name: 'Vacunación COVID-19 Refuerzo',
+      status: 'completed',
+      startDate: '2023-10-01',
+      endDate: '2023-12-31',
+      targetEmployees: 145,
+      vaccinatedEmployees: 140,
+      vaccines: ['covid-19'],
+    },
+  ],
+  departments: [
+    { name: 'Administración', employees: 25, vaccinated: 23, coverage: 92 },
+    { name: 'Ventas', employees: 40, vaccinated: 35, coverage: 87.5 },
+    { name: 'Producción', employees: 60, vaccinated: 48, coverage: 80 },
+    { name: 'IT', employees: 15, vaccinated: 14, coverage: 93.3 },
+    { name: 'RRHH', employees: 10, vaccinated: 10, coverage: 100 },
+  ],
+};
+
+// Sample Loyalty Data
+export const sampleLoyaltyData = {
+  userId: 'user-1',
+  points: 1250,
+  tier: 'gold' as const,
+  totalSpent: 15000,
+  ordersCount: 12,
+};
+
+// Sample Referral Data
+export const sampleReferralData = {
+  referralCode: 'VACUNA2024ABC',
+  totalReferrals: 8,
+  successfulReferrals: 6,
+  pendingReferrals: 2,
+  totalEarnings: 1200,
+  availableBalance: 800,
+  referralBonus: 200,
+  refereeBonus: 100,
 };

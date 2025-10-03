@@ -21,7 +21,7 @@ import { WidgetProvider } from "@/contexts/WidgetContext";
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
-  initialRouteName: "(tabs)",
+  initialRouteName: "auth/login",
 };
 
 export default function RootLayout() {
@@ -86,8 +86,22 @@ export default function RootLayout() {
           <WidgetProvider>
             <GestureHandlerRootView>
             <Stack>
+              {/* Authentication Screens */}
+              <Stack.Screen name="auth/login" options={{ headerShown: false }} />
+              <Stack.Screen name="auth/register" options={{ headerShown: false }} />
+              
               {/* Main app with tabs */}
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              
+              {/* Additional Screens */}
+              <Stack.Screen name="vaccination-records" options={{ headerShown: false }} />
+              <Stack.Screen name="appointments" options={{ headerShown: false }} />
+              <Stack.Screen name="payment-methods" options={{ headerShown: false }} />
+              <Stack.Screen name="subscriptions" options={{ headerShown: false }} />
+              <Stack.Screen name="family-profiles" options={{ headerShown: false }} />
+              <Stack.Screen name="corporate-dashboard" options={{ headerShown: false }} />
+              <Stack.Screen name="loyalty-program" options={{ headerShown: false }} />
+              <Stack.Screen name="referral-program" options={{ headerShown: false }} />
 
               {/* Modal Demo Screens */}
               <Stack.Screen

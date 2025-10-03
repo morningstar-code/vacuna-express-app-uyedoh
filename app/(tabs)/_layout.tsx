@@ -22,16 +22,16 @@ export default function TabLayout() {
       label: 'Catálogo',
     },
     {
-      name: 'promotions',
-      route: '/(tabs)/promotions',
-      icon: 'tag.fill',
-      label: 'Ofertas',
-    },
-    {
       name: 'orders',
       route: '/(tabs)/orders',
       icon: 'shippingbox.fill',
       label: 'Pedidos',
+    },
+    {
+      name: 'promotions',
+      route: '/(tabs)/promotions',
+      icon: 'tag.fill',
+      label: 'Ofertas',
     },
     {
       name: 'profile',

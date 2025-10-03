@@ -39,14 +39,15 @@ export default function ProfileScreen() {
         { label: 'Editar Perfil', icon: 'person.fill', action: () => console.log('Edit profile') },
         { label: 'Información de Contacto', icon: 'phone.fill', action: () => console.log('Contact info') },
         { label: 'Direcciones', icon: 'location.fill', action: () => console.log('Addresses') },
+        { label: 'Perfiles Familiares', icon: 'person.2.fill', action: () => router.push('/family-profiles') },
       ],
     },
     {
       title: 'Programa de Lealtad',
       items: [
-        { label: 'Mis Puntos', icon: 'star.fill', action: () => router.push('/(tabs)/promotions'), badge: userData.loyaltyPoints },
-        { label: 'Historial de Recompensas', icon: 'gift.fill', action: () => console.log('Rewards history') },
-        { label: 'Referencias', icon: 'person.2.fill', action: () => router.push('/(tabs)/promotions') },
+        { label: 'Mis Puntos', icon: 'star.fill', action: () => router.push('/loyalty-program'), badge: userData.loyaltyPoints },
+        { label: 'Recompensas', icon: 'gift.fill', action: () => router.push('/loyalty-program') },
+        { label: 'Referir Amigos', icon: 'person.2.fill', action: () => router.push('/referral-program') },
       ],
     },
     {
@@ -54,17 +55,25 @@ export default function ProfileScreen() {
       items: [
         { label: 'Historial de Pedidos', icon: 'clock.fill', action: () => router.push('/(tabs)/orders') },
         { label: 'Facturas', icon: 'doc.text.fill', action: () => console.log('Invoices') },
-        { label: 'Métodos de Pago', icon: 'creditcard.fill', action: () => console.log('Payment methods') },
-        { label: 'Suscripciones', icon: 'repeat.circle.fill', action: () => console.log('Subscriptions') },
+        { label: 'Métodos de Pago', icon: 'creditcard.fill', action: () => router.push('/payment-methods') },
+        { label: 'Suscripciones', icon: 'repeat.circle.fill', action: () => router.push('/subscriptions') },
       ],
     },
     {
       title: 'Salud y Vacunación',
       items: [
-        { label: 'Mi Registro de Vacunas', icon: 'heart.text.square.fill', action: () => console.log('Vaccination record') },
-        { label: 'Familia', icon: 'house.fill', action: () => console.log('Family members') },
+        { label: 'Mi Registro de Vacunas', icon: 'heart.text.square.fill', action: () => router.push('/vaccination-records') },
+        { label: 'Citas Programadas', icon: 'calendar.badge.clock', action: () => router.push('/appointments') },
         { label: 'Recordatorios', icon: 'bell.fill', action: () => router.push('/(tabs)/notifications') },
-        { label: 'Certificados', icon: 'doc.badge.plus', action: () => console.log('Certificates') },
+        { label: 'Certificados', icon: 'doc.badge.plus', action: () => router.push('/vaccination-records') },
+      ],
+    },
+    {
+      title: 'Empresarial',
+      items: [
+        { label: 'Dashboard Corporativo', icon: 'building.2.fill', action: () => router.push('/corporate-dashboard') },
+        { label: 'Gestión de Empleados', icon: 'person.3.fill', action: () => router.push('/corporate-dashboard') },
+        { label: 'Reportes', icon: 'chart.bar.fill', action: () => router.push('/corporate-dashboard') },
       ],
     },
     {
