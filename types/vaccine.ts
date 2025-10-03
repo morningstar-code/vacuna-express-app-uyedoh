@@ -27,10 +27,16 @@ export interface Order {
   userId: string;
   items: CartItem[];
   totalAmount: number;
-  status: 'pending' | 'confirmed' | 'in_progress' | 'delivered' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'preparing' | 'dispatched' | 'in_transit' | 'delivered' | 'received' | 'cancelled';
   orderDate: string;
   deliveryDate?: string;
   trackingNumber?: string;
+  progress?: number; // 0-100 percentage
+  eta?: string; // estimated time of arrival
+  location?: string; // current location or delivery address
+  doctorConfirmation?: boolean; // whether doctor has confirmed receipt
+  receiptUploaded?: boolean; // whether delivery receipt has been uploaded
+  paymentStatus?: 'paid' | 'pending' | 'overdue';
 }
 
 export interface User {
