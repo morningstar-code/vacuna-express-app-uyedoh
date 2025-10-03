@@ -34,11 +34,25 @@ export default function RegisterScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const updateField = (field: string, value: string) => {
+    console.log(`Updating field ${field} with value:`, value);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const validateForm = () => {
     const { firstName, lastName, businessName, email, phone, rnc, cedula, address, password, confirmPassword } = formData;
+    
+    console.log('Validating form with data:', {
+      firstName: !!firstName,
+      lastName: !!lastName,
+      businessName: !!businessName,
+      email: !!email,
+      phone: !!phone,
+      rnc: !!rnc,
+      cedula: !!cedula,
+      address: !!address,
+      password: !!password,
+      confirmPassword: !!confirmPassword,
+    });
     
     // Check all required fields including businessName
     if (!firstName || !lastName || !businessName || !email || !phone || !rnc || !cedula || !address || !password) {
@@ -62,6 +76,7 @@ export default function RegisterScreen() {
       return false;
     }
 
+    console.log('Form validation passed');
     return true;
   };
 
@@ -72,7 +87,8 @@ export default function RegisterScreen() {
     
     try {
       console.log('Attempting registration for:', formData.email);
-      const { error } = await signUp(formData.email, formData.password, {
+      
+      const userData = {
         first_name: formData.firstName,
         last_name: formData.lastName,
         business_name: formData.businessName,
@@ -80,15 +96,27 @@ export default function RegisterScreen() {
         cedula: formData.cedula,
         address: formData.address,
         phone: formData.phone,
-      });
+      };
+      
+      console.log('User data for registration:', userData);
+      
+      const { error } = await signUp(formData.email, formData.password, userData);
       
       if (error) {
         console.error('Registration error:', error);
         let errorMessage = 'Error al crear la cuenta. Intente nuevamente.';
         
         if (error.message) {
-          if (error.message.includes('already registered')) {
+          if (error.message.includes('already registered') || error.message.includes('User already registered')) {
             errorMessage = 'Este correo electrónico ya está registrado.';
+          } else if (error.message.includes('duplicate key value violates unique constraint')) {
+            if (error.message.includes('rnc')) {
+              errorMessage = 'Este RNC ya está registrado en el sistema.';
+            } else if (error.message.includes('cedula')) {
+              errorMessage = 'Esta cédula ya está registrada en el sistema.';
+            } else {
+              errorMessage = 'Ya existe un registro con esta información.';
+            }
           } else {
             errorMessage = error.message;
           }

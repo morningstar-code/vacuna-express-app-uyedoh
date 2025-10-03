@@ -10,6 +10,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -75,9 +76,16 @@ export default function LoginScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <IconSymbol name="cross.fill" size={48} color={colors.primary} />
+              <Image
+                source={require('@/assets/images/275cdcdc-16f7-40a5-9e26-952a84e33f75.jpeg')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </View>
-            <Text style={[commonStyles.title, styles.title]}>VacunaExpress</Text>
+            <View style={styles.brandingContainer}>
+              <Text style={[commonStyles.title, styles.brandName]}>Vacuna</Text>
+              <Text style={[commonStyles.title, styles.brandExpress]}>Express</Text>
+            </View>
             <Text style={[commonStyles.textSecondary, styles.subtitle]}>
               Distribución de vacunas a domicilio
             </Text>
@@ -161,20 +169,36 @@ const styles = StyleSheet.create({
     marginBottom: 48,
   },
   logoContainer: {
-    width: 80,
-    height: 80,
+    width: 120,
+    height: 120,
     backgroundColor: colors.card,
-    borderRadius: 40,
+    borderRadius: 60,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 24,
     ...commonStyles.shadow,
+    overflow: 'hidden',
   },
-  title: {
+  logo: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  brandingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  brandName: {
     fontSize: 32,
     fontWeight: '800',
     color: colors.primary,
-    marginBottom: 8,
+    marginRight: 8,
+  },
+  brandExpress: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#FF6B35', // Orange color from the logo
   },
   subtitle: {
     textAlign: 'center',
