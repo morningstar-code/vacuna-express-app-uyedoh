@@ -16,22 +16,22 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.primary, // Use primary blue for active tabs
-        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarActiveTintColor: colors.primary, // Primary blue for active tabs
+        tabBarInactiveTintColor: colors.text, // Contrasting color for inactive tabs
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
         tabBarStyle: {
           backgroundColor: '#FFFFFF', // Solid white background
           borderTopWidth: 1,
-          borderTopColor: '#E5E5E5', // Subtle top border
+          borderTopColor: '#E5E7EB', // Subtle shadow above
           height: Platform.OS === 'ios' ? 88 : 60,
           paddingBottom: Platform.OS === 'ios' ? 34 : 8,
           paddingTop: 8,
           elevation: 8, // Android shadow
-          shadowColor: '#000', // iOS shadow
+          shadowColor: '#E5E7EB', // iOS shadow - subtle gray
           shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.1,
+          shadowOpacity: 0.3,
           shadowRadius: 4,
         },
       }}>
@@ -63,20 +63,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="promotions"
+        name="education"
         options={{
-          title: 'Ofertas',
+          title: 'Educación',
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol size={28} name={focused ? 'tag.fill' : 'tag'} color={color} />
+            <IconSymbol size={28} name={focused ? 'book.fill' : 'book'} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="notifications"
         options={{
-          title: 'Perfil',
+          title: 'Notificaciones',
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol size={28} name={focused ? 'person.crop.circle.fill' : 'person.crop.circle'} color={color} />
+            <IconSymbol size={28} name={focused ? 'bell.fill' : 'bell'} color={color} />
           ),
         }}
       />

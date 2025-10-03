@@ -14,19 +14,10 @@ import {
 import { getActivePromotions, sampleNotifications } from '@/data/vaccines';
 import { colors, commonStyles, spacing, borderRadius, shadows, typography } from '@/styles/commonStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import FloatingCartButton from '@/components/FloatingCartButton';
 
 export default function HomeScreen() {
-  // Mock cart state - in a real app this would come from a global state manager
-  const [cart, setCart] = useState<{[key: string]: number}>({});
-  
-  // Calculate cart totals
-  const cartItemCount = Object.values(cart).reduce((sum, quantity) => sum + quantity, 0);
-  const cartTotal = Object.entries(cart).reduce((total, [vaccineId, quantity]) => {
-    // Mock price calculation - in real app would fetch from vaccine data
-    const mockPrice = 25.99;
-    return total + (mockPrice * quantity);
-  }, 0);
+  // Mock user data - in a real app this would come from authentication
+  const doctorName = "Dr. María González";
 
   const handleQuickAction = (route: string) => {
     console.log('Navigating to:', route);
@@ -43,19 +34,37 @@ export default function HomeScreen() {
     router.push('/(tabs)/notifications');
   };
 
+  const handleViewAllPromotions = () => {
+    console.log('View all promotions');
+    router.push('/promotions');
+  };
+
+  const getNotificationTypeChip = (type: string) => {
+    switch (type) {
+      case 'promotion':
+        return { color: colors.success, text: 'Promoción' };
+      case 'reminder':
+        return { color: colors.primary, text: 'Recordatorio' };
+      case 'shipment':
+        return { color: colors.warning, text: 'Pedido' };
+      default:
+        return { color: colors.secondary, text: 'Info' };
+    }
+  };
+
   return (
     <SafeAreaView style={commonStyles.safeArea}>
       <Stack.Screen options={{ headerShown: false }} />
       
       <ScrollView 
         style={commonStyles.container}
-        contentContainerStyle={{ paddingBottom: cartItemCount > 0 ? 100 : 20 }}
+        contentContainerStyle={{ paddingBottom: 32 }} // 32dp padding at bottom
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
         <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>¡Hola!</Text>
+          <View style={styles.headerContent}>
+            <Text style={styles.greeting}>👋 Hola, {doctorName}</Text>
             <Text style={styles.welcomeText}>Bienvenido a VacunaExpress</Text>
           </View>
           
@@ -63,7 +72,7 @@ export default function HomeScreen() {
             style={styles.notificationButton}
             onPress={handleNotifications}
           >
-            <IconSymbol name="bell.fill" size={24} color={colors.primary} />
+            <IconSymbol name="bell.fill" size={24} color={colors.text} />
             {sampleNotifications.filter(n => !n.isRead).length > 0 && (
               <View style={styles.notificationBadge}>
                 <Text style={styles.notificationBadgeText}>
@@ -76,14 +85,13 @@ export default function HomeScreen() {
 
         {/* Quick Actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
           <View style={styles.quickActions}>
             <TouchableOpacity 
               style={styles.quickActionCard}
               onPress={() => handleQuickAction('/(tabs)/catalog')}
             >
-              <View style={[styles.quickActionIcon, { backgroundColor: colors.primary + '15' }]}>
-                <IconSymbol name="list.bullet.rectangle" size={28} color={colors.primary} />
+              <View style={styles.quickActionIcon}>
+                <IconSymbol name="list.bullet.rectangle" size={24} color={colors.primary} />
               </View>
               <Text style={styles.quickActionTitle}>Catálogo</Text>
               <Text style={styles.quickActionSubtitle}>Explorar vacunas</Text>
@@ -93,19 +101,19 @@ export default function HomeScreen() {
               style={styles.quickActionCard}
               onPress={() => handleQuickAction('/(tabs)/orders')}
             >
-              <View style={[styles.quickActionIcon, { backgroundColor: colors.accent + '15' }]}>
-                <IconSymbol name="shippingbox.fill" size={28} color={colors.accent} />
+              <View style={styles.quickActionIcon}>
+                <IconSymbol name="shippingbox.fill" size={24} color={colors.primary} />
               </View>
-              <Text style={styles.quickActionTitle}>Mis Pedidos</Text>
+              <Text style={styles.quickActionTitle}>Pedidos</Text>
               <Text style={styles.quickActionSubtitle}>Seguir entregas</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
               style={styles.quickActionCard}
-              onPress={() => handleQuickAction('/(tabs)/promotions')}
+              onPress={() => handleQuickAction('/promotions')}
             >
-              <View style={[styles.quickActionIcon, { backgroundColor: colors.warning + '15' }]}>
-                <IconSymbol name="tag.fill" size={28} color={colors.warning} />
+              <View style={styles.quickActionIcon}>
+                <IconSymbol name="tag.fill" size={24} color={colors.primary} />
               </View>
               <Text style={styles.quickActionTitle}>Ofertas</Text>
               <Text style={styles.quickActionSubtitle}>Descuentos activos</Text>
@@ -115,47 +123,51 @@ export default function HomeScreen() {
               style={styles.quickActionCard}
               onPress={() => handleQuickAction('/(tabs)/profile')}
             >
-              <View style={[styles.quickActionIcon, { backgroundColor: colors.info + '15' }]}>
-                <IconSymbol name="person.fill" size={28} color={colors.info} />
+              <View style={styles.quickActionIcon}>
+                <IconSymbol name="person.fill" size={24} color={colors.primary} />
               </View>
-              <Text style={styles.quickActionTitle}>Mi Perfil</Text>
-              <Text style={styles.quickActionSubtitle}>Configuración</Text>
+              <Text style={styles.quickActionTitle}>Perfil</Text>
+              <Text style={styles.quickActionSubtitle}>Mi cuenta</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Categories */}
+        {/* Categories - Horizontal Scrollable */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Categorías de Vacunas</Text>
-          <View style={styles.categories}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoriesContainer}
+          >
             <TouchableOpacity 
               style={styles.categoryCard}
               onPress={() => handleCategoryPress('Universal')}
             >
-              <View style={[styles.categoryIcon, { backgroundColor: colors.primary + '15' }]}>
-                <IconSymbol name="globe" size={32} color={colors.primary} />
+              <View style={styles.categoryIcon}>
+                <IconSymbol name="globe" size={28} color={colors.primary} />
               </View>
               <Text style={styles.categoryTitle}>Universal</Text>
-              <Text style={styles.categorySubtitle}>Para todas las edades</Text>
+              <Text style={styles.categorySubtitle}>Todas las edades</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
               style={styles.categoryCard}
               onPress={() => handleCategoryPress('Niños')}
             >
-              <View style={[styles.categoryIcon, { backgroundColor: colors.accent + '15' }]}>
-                <IconSymbol name="figure.child" size={32} color={colors.accent} />
+              <View style={styles.categoryIcon}>
+                <IconSymbol name="figure.child" size={28} color={colors.primary} />
               </View>
               <Text style={styles.categoryTitle}>Niños</Text>
-              <Text style={styles.categorySubtitle}>Pediatría especializada</Text>
+              <Text style={styles.categorySubtitle}>Pediatría</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
               style={styles.categoryCard}
               onPress={() => handleCategoryPress('Adolescentes')}
             >
-              <View style={[styles.categoryIcon, { backgroundColor: colors.info + '15' }]}>
-                <IconSymbol name="figure.walk" size={32} color={colors.info} />
+              <View style={styles.categoryIcon}>
+                <IconSymbol name="figure.walk" size={28} color={colors.primary} />
               </View>
               <Text style={styles.categoryTitle}>Adolescentes</Text>
               <Text style={styles.categorySubtitle}>11-18 años</Text>
@@ -165,90 +177,76 @@ export default function HomeScreen() {
               style={styles.categoryCard}
               onPress={() => handleCategoryPress('Adultos')}
             >
-              <View style={[styles.categoryIcon, { backgroundColor: colors.warning + '15' }]}>
-                <IconSymbol name="person.2.fill" size={32} color={colors.warning} />
+              <View style={styles.categoryIcon}>
+                <IconSymbol name="person.2.fill" size={28} color={colors.primary} />
               </View>
               <Text style={styles.categoryTitle}>Adultos</Text>
-              <Text style={styles.categorySubtitle}>Mayores de 18 años</Text>
+              <Text style={styles.categorySubtitle}>18+ años</Text>
             </TouchableOpacity>
-          </View>
+          </ScrollView>
         </View>
 
-        {/* Active Promotions */}
+        {/* Promotions */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Promociones Activas</Text>
-            <TouchableOpacity onPress={() => handleQuickAction('/(tabs)/promotions')}>
+            <Text style={styles.sectionTitle}>Promociones</Text>
+            <TouchableOpacity onPress={handleViewAllPromotions} style={styles.seeAllButton}>
               <Text style={styles.seeAllText}>Ver todas</Text>
+              <IconSymbol name="chevron.right" size={16} color={colors.primary} />
             </TouchableOpacity>
           </View>
           
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.promotionsContainer}
-          >
-            {getActivePromotions().slice(0, 3).map((promotion) => (
-              <View key={promotion.id} style={styles.promotionCard}>
-                <View style={styles.promotionHeader}>
-                  <IconSymbol name="tag.fill" size={20} color={colors.warning} />
-                  <Text style={styles.promotionDiscount}>-{promotion.discountValue}%</Text>
+          {getActivePromotions().slice(0, 2).map((promotion) => (
+            <View key={promotion.id} style={styles.promotionCard}>
+              <View style={styles.promotionHeader}>
+                <View style={[styles.typeChip, { backgroundColor: colors.success }]}>
+                  <Text style={styles.typeChipText}>Promoción</Text>
                 </View>
-                <Text style={styles.promotionTitle}>{promotion.title}</Text>
-                <Text style={styles.promotionDescription} numberOfLines={2}>
-                  {promotion.description}
-                </Text>
-                <Text style={styles.promotionExpiry}>
-                  Válido hasta: {new Date(promotion.validTo).toLocaleDateString('es-DO')}
-                </Text>
+                <Text style={styles.promotionDiscount}>-{promotion.discountValue}%</Text>
               </View>
-            ))}
-          </ScrollView>
+              <Text style={styles.promotionTitle}>{promotion.title}</Text>
+              <Text style={styles.promotionDescription} numberOfLines={2}>
+                {promotion.description}
+              </Text>
+              <Text style={styles.promotionExpiry}>
+                Válido hasta: {new Date(promotion.validTo).toLocaleDateString('es-DO')}
+              </Text>
+            </View>
+          ))}
         </View>
 
         {/* Recent Notifications */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Notificaciones Recientes</Text>
-            <TouchableOpacity onPress={handleNotifications}>
+            <TouchableOpacity onPress={handleNotifications} style={styles.seeAllButton}>
               <Text style={styles.seeAllText}>Ver todas</Text>
+              <IconSymbol name="chevron.right" size={16} color={colors.primary} />
             </TouchableOpacity>
           </View>
           
-          {sampleNotifications.slice(0, 3).map((notification) => (
-            <View key={notification.id} style={styles.notificationCard}>
-              <View style={styles.notificationIcon}>
-                <IconSymbol 
-                  name={
-                    notification.type === 'reminder' ? 'clock.fill' :
-                    notification.type === 'promotion' ? 'tag.fill' :
-                    notification.type === 'shipment' ? 'shippingbox.fill' :
-                    'info.circle.fill'
-                  } 
-                  size={20} 
-                  color={colors.primary} 
-                />
-              </View>
-              <View style={styles.notificationContent}>
+          {sampleNotifications.slice(0, 3).map((notification) => {
+            const chipData = getNotificationTypeChip(notification.type);
+            return (
+              <View key={notification.id} style={styles.notificationCard}>
+                <View style={styles.notificationHeader}>
+                  <View style={[styles.typeChip, { backgroundColor: chipData.color }]}>
+                    <Text style={styles.typeChipText}>{chipData.text}</Text>
+                  </View>
+                  <Text style={styles.notificationTime}>
+                    {new Date(notification.createdAt).toLocaleDateString('es-DO')}
+                  </Text>
+                </View>
                 <Text style={styles.notificationTitle}>{notification.title}</Text>
                 <Text style={styles.notificationMessage} numberOfLines={2}>
                   {notification.message}
                 </Text>
-                <Text style={styles.notificationTime}>
-                  {new Date(notification.createdAt).toLocaleDateString('es-DO')}
-                </Text>
+                {!notification.isRead && <View style={styles.unreadDot} />}
               </View>
-              {!notification.isRead && <View style={styles.unreadDot} />}
-            </View>
-          ))}
+            );
+          })}
         </View>
       </ScrollView>
-
-      {/* Floating Cart Button */}
-      <FloatingCartButton
-        itemCount={cartItemCount}
-        totalAmount={cartTotal}
-      />
     </SafeAreaView>
   );
 }
@@ -259,27 +257,29 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xl,
-    backgroundColor: colors.card,
-    marginBottom: spacing.sm,
-    ...shadows.sm,
+    paddingVertical: spacing.lg,
+    backgroundColor: colors.background,
+    marginBottom: spacing.md,
+  },
+  headerContent: {
+    flex: 1,
   },
   greeting: {
-    ...typography.h3,
-    color: colors.text,
+    fontSize: 20,
     fontWeight: '700',
+    color: colors.text,
+    lineHeight: 28, // 1.4 line height
+    marginBottom: 2,
   },
   welcomeText: {
-    ...typography.body2,
-    color: colors.textSecondary,
-    marginTop: 2,
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#6B7280', // Gray as specified
+    lineHeight: 20, // 1.4 line height
   },
   notificationButton: {
     position: 'relative',
     padding: spacing.sm,
-    backgroundColor: colors.background,
-    borderRadius: borderRadius.full,
-    ...shadows.sm,
   },
   notificationBadge: {
     position: 'absolute',
@@ -293,14 +293,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   notificationBadgeText: {
-    ...typography.caption,
-    color: colors.card,
-    fontWeight: '700',
     fontSize: 10,
+    fontWeight: '700',
+    color: colors.card,
   },
   
   section: {
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg, // 12-16dp between sections
     paddingHorizontal: spacing.lg,
   },
   sectionHeader: {
@@ -310,14 +309,21 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   sectionTitle: {
-    ...typography.h4,
-    color: colors.text,
+    fontSize: 18,
     fontWeight: '600',
+    color: colors.text,
+    lineHeight: 25, // 1.4 line height
+  },
+  seeAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   seeAllText: {
-    ...typography.body2,
-    color: colors.primary,
+    fontSize: 14,
     fontWeight: '600',
+    color: colors.primary,
+    textDecorationLine: 'underline',
   },
   
   quickActions: {
@@ -328,148 +334,164 @@ const styles = StyleSheet.create({
   },
   quickActionCard: {
     backgroundColor: colors.card,
-    borderRadius: borderRadius.lg,
+    borderRadius: 14, // 12-14dp radius
     padding: spacing.lg,
     alignItems: 'center',
     width: '47%',
-    ...shadows.sm,
+    ...shadows.sm, // Light shadow
     borderWidth: 1,
     borderColor: colors.border,
   },
   quickActionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: borderRadius.xl,
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.primary + '15',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm,
   },
   quickActionTitle: {
-    ...typography.h6,
+    fontSize: 15, // 15sp bold black
+    fontWeight: '700',
     color: colors.text,
-    fontWeight: '600',
+    lineHeight: 21, // 1.4 line height
     marginBottom: 2,
   },
   quickActionSubtitle: {
-    ...typography.caption,
-    color: colors.textSecondary,
+    fontSize: 13, // 13sp gray
+    fontWeight: '400',
+    color: '#6B7280',
     textAlign: 'center',
+    lineHeight: 18, // 1.4 line height
   },
   
-  categories: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: spacing.md,
+  categoriesContainer: {
+    paddingRight: spacing.lg,
   },
   categoryCard: {
     backgroundColor: colors.card,
-    borderRadius: borderRadius.lg,
+    borderRadius: 14, // 12-14dp radius
     padding: spacing.lg,
     alignItems: 'center',
-    width: '47%',
-    ...shadows.sm,
+    width: 140,
+    marginRight: spacing.md,
+    ...shadows.sm, // Light shadow
     borderWidth: 1,
     borderColor: colors.border,
   },
   categoryIcon: {
-    width: 64,
-    height: 64,
+    width: 56,
+    height: 56,
     borderRadius: borderRadius.xl,
+    backgroundColor: colors.primary + '15',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   categoryTitle: {
-    ...typography.h6,
+    fontSize: 15, // 15sp bold black
+    fontWeight: '700',
     color: colors.text,
-    fontWeight: '600',
+    lineHeight: 21, // 1.4 line height
     marginBottom: 2,
-  },
-  categorySubtitle: {
-    ...typography.caption,
-    color: colors.textSecondary,
     textAlign: 'center',
   },
-  
-  promotionsContainer: {
-    paddingRight: spacing.lg,
+  categorySubtitle: {
+    fontSize: 13, // 13sp gray
+    fontWeight: '400',
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 18, // 1.4 line height
   },
+  
   promotionCard: {
     backgroundColor: colors.card,
-    borderRadius: borderRadius.lg,
+    borderRadius: 14, // 12-14dp radius
     padding: spacing.lg,
-    marginRight: spacing.md,
-    width: 280,
-    ...shadows.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  promotionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  promotionDiscount: {
-    ...typography.h5,
-    color: colors.warning,
-    fontWeight: '700',
-    marginLeft: spacing.sm,
-  },
-  promotionTitle: {
-    ...typography.h6,
-    color: colors.text,
-    fontWeight: '600',
-    marginBottom: spacing.xs,
-  },
-  promotionDescription: {
-    ...typography.body2,
-    color: colors.textSecondary,
-    marginBottom: spacing.sm,
-  },
-  promotionExpiry: {
-    ...typography.caption,
-    color: colors.textTertiary,
-  },
-  
-  notificationCard: {
-    backgroundColor: colors.card,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    marginBottom: spacing.md, // 12-16dp vertical padding
     ...shadows.sm,
     borderWidth: 1,
     borderColor: colors.border,
     position: 'relative',
   },
-  notificationIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.background,
+  promotionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
+    marginBottom: spacing.sm,
   },
-  notificationContent: {
-    flex: 1,
+  typeChip: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.sm,
+  },
+  typeChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.card,
+  },
+  promotionDiscount: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  promotionTitle: {
+    fontSize: 15, // 15sp bold black
+    fontWeight: '700',
+    color: colors.text,
+    lineHeight: 21, // 1.4 line height
+    marginBottom: spacing.xs,
+  },
+  promotionDescription: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: colors.textSecondary,
+    lineHeight: 20, // 1.4 line height
+    marginBottom: spacing.sm,
+  },
+  promotionExpiry: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: colors.textTertiary,
+    lineHeight: 17, // 1.4 line height
+  },
+  
+  notificationCard: {
+    backgroundColor: colors.card,
+    borderRadius: 14, // 12-14dp radius
+    padding: spacing.lg,
+    marginBottom: spacing.md, // 12-16dp vertical padding
+    ...shadows.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    position: 'relative',
+  },
+  notificationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
   },
   notificationTitle: {
-    ...typography.body1,
+    fontSize: 15, // 15sp bold black
+    fontWeight: '700',
     color: colors.text,
-    fontWeight: '600',
-    marginBottom: 2,
+    lineHeight: 21, // 1.4 line height
+    marginBottom: spacing.xs,
   },
   notificationMessage: {
-    ...typography.body2,
+    fontSize: 14,
+    fontWeight: '400',
     color: colors.textSecondary,
+    lineHeight: 20, // 1.4 line height
     marginBottom: spacing.xs,
   },
   notificationTime: {
-    ...typography.caption,
+    fontSize: 12,
+    fontWeight: '400',
     color: colors.textTertiary,
+    lineHeight: 17, // 1.4 line height
   },
   unreadDot: {
     width: 8,
@@ -477,7 +499,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: colors.primary,
     position: 'absolute',
-    top: spacing.md,
-    right: spacing.md,
+    top: spacing.lg,
+    right: spacing.lg,
   },
 });

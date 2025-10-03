@@ -15,6 +15,7 @@ import { colors, commonStyles, spacing, borderRadius, typography } from '@/style
 import { IconSymbol } from '@/components/IconSymbol';
 import { promotions, getActivePromotions } from '@/data/vaccines';
 import { Promotion } from '@/types/vaccine';
+import { Stack, router } from 'expo-router';
 
 export default function PromotionsScreen() {
   const [selectedTab, setSelectedTab] = useState<'active' | 'loyalty' | 'referral'>('active');
@@ -326,10 +327,16 @@ export default function PromotionsScreen() {
 
   return (
     <SafeAreaView style={commonStyles.safeArea}>
+      <Stack.Screen 
+        options={{
+          title: 'Promociones',
+          headerShown: true,
+          headerBackTitle: 'Atrás',
+        }} 
+      />
       <View style={commonStyles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={commonStyles.title}>Promociones</Text>
           
           {/* Tab Selector */}
           <View style={styles.tabSelector}>

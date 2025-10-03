@@ -6,26 +6,26 @@ export const colors = {
   background: '#FAFBFC',
   backgroundSecondary: '#F8F9FA',
   text: '#1A202C',
-  textSecondary: '#718096',
+  textSecondary: '#6B7280', // Updated to match requirements
   textTertiary: '#A0AEC0',
-  primary: '#0B60D1', // Updated to match requirements
+  primary: '#0B60D1', // Primary blue as specified
   primaryLight: '#3182CE',
   primaryDark: '#2C5282',
   secondary: '#4A5568',
   accent: '#38A169',
   accentLight: '#48BB78',
-  card: '#FFFFFF',
+  card: '#FFFFFF', // Solid white background
   cardSecondary: '#F7FAFC',
   highlight: '#ED8936',
-  border: '#E2E8F0',
+  border: '#E5E7EB', // Updated to match shadow color
   borderLight: '#EDF2F7',
   error: '#E53E3E',
   errorLight: '#FC8181',
-  success: '#19C37D', // Updated to match requirements
+  success: '#19C37D', // Green for promotions
   successLight: '#68D391',
-  warning: '#D69E2E',
+  warning: '#F59E0B', // Orange for orders/shipments
   warningLight: '#F6E05E',
-  info: '#3182CE',
+  info: '#0B60D1', // Blue for reminders
   infoLight: '#63B3ED',
   
   // Semantic colors
@@ -37,7 +37,7 @@ export const colors = {
   // Gradients
   primaryGradient: ['#0B60D1', '#3182CE'],
   successGradient: ['#19C37D', '#48BB78'],
-  warningGradient: ['#D69E2E', '#F6E05E'],
+  warningGradient: ['#F59E0B', '#F6E05E'],
 };
 
 // 8pt spacing scale (4/8/12/16/20/24)
