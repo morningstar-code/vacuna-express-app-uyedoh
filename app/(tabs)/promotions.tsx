@@ -7,9 +7,11 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Share,
+  Clipboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, commonStyles } from '@/styles/commonStyles';
+import { colors, commonStyles, spacing, borderRadius, typography } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { promotions, getActivePromotions } from '@/data/vaccines';
 import { Promotion } from '@/types/vaccine';
@@ -120,12 +122,24 @@ export default function PromotionsScreen() {
     }
   };
 
-  const handleShareReferral = () => {
-    Alert.alert(
-      'Compartir Código',
-      `Tu código de referido es: ${referralData.referralCode}\n\n¡Compártelo con tus amigos y ambos obtendrán descuentos!`,
-      [{ text: 'OK' }]
-    );
+  const handleCopyReferralCode = async () => {
+    try {
+      await Clipboard.setStringAsync(referralData.referralCode);
+      Alert.alert('Copiado', 'Código de referido copiado al portapapeles');
+    } catch (error) {
+      console.log('Error copying to clipboard:', error);
+    }
+  };
+
+  const handleShareReferral = async () => {
+    try {
+      await Share.share({
+        message: `¡Únete a VacunaExpress con mi código de referido ${referralData.referralCode} y obtén 10% de descuento en tu primera compra! 💉`,
+        title: 'Código de Referido VacunaExpress',
+      });
+    } catch (error) {
+      console.log('Error sharing:', error);
+    }
   };
 
   const renderPromotionCard = (promotion: Promotion) => (
@@ -156,7 +170,7 @@ export default function PromotionsScreen() {
         </View>
         
         {promotion.minQuantity && (
-          <Text style={[commonStyles.textSmall, { marginTop: 8 }]}>
+          <Text style={[commonStyles.textSmall, { marginTop: spacing.sm }]}>
             Mínimo {promotion.minQuantity} productos
           </Text>
         )}
@@ -207,7 +221,7 @@ export default function PromotionsScreen() {
       </View>
 
       {/* Available Rewards */}
-      <Text style={[commonStyles.subtitle, { marginTop: 24, marginBottom: 16 }]}>
+      <Text style={[commonStyles.subtitle, { marginTop: spacing.xxl, marginBottom: spacing.lg }]}>
         Recompensas Disponibles
       </Text>
       
@@ -216,7 +230,7 @@ export default function PromotionsScreen() {
           <View style={styles.rewardInfo}>
             <Text style={commonStyles.heading}>{reward.name}</Text>
             <Text style={commonStyles.textSecondary}>{reward.description}</Text>
-            <Text style={[commonStyles.text, { color: colors.primary, marginTop: 4 }]}>
+            <Text style={[commonStyles.text, { color: colors.primary, marginTop: spacing.xs }]}>
               {reward.points} puntos
             </Text>
           </View>
@@ -242,46 +256,49 @@ export default function PromotionsScreen() {
 
   const renderReferralProgram = () => (
     <View style={styles.referralContainer}>
-      {/* Referral Stats */}
+      {/* Referral Program Header */}
       <View style={[commonStyles.card, styles.referralCard]}>
         <View style={styles.referralHeader}>
           <IconSymbol name="person.2.fill" size={32} color={colors.primary} />
           <Text style={commonStyles.heading}>Programa de Referencias</Text>
         </View>
 
-        <View style={styles.referralStats}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{referralData.referralsCount}</Text>
-            <Text style={commonStyles.textSecondary}>Referencias</Text>
+        {/* Metrics in separate mini-cards */}
+        <View style={styles.metricsContainer}>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricTitle}>Referencias</Text>
+            <Text style={styles.metricValue}>{referralData.referralsCount}</Text>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{referralData.earnedDiscounts}%</Text>
-            <Text style={commonStyles.textSecondary}>Descuento Ganado</Text>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricTitle}>Descuento</Text>
+            <Text style={styles.metricValue}>{referralData.earnedDiscounts}%</Text>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{referralData.pendingRewards}</Text>
-            <Text style={commonStyles.textSecondary}>Recompensas Pendientes</Text>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricTitle}>Recompensas</Text>
+            <Text style={styles.metricValue}>{referralData.pendingRewards}</Text>
           </View>
         </View>
 
+        {/* Referral Code */}
         <View style={styles.referralCodeContainer}>
           <Text style={commonStyles.textSecondary}>Tu código de referido:</Text>
           <View style={styles.referralCode}>
             <Text style={styles.referralCodeText}>{referralData.referralCode}</Text>
-            <TouchableOpacity onPress={handleShareReferral}>
-              <IconSymbol name="square.and.arrow.up" size={20} color={colors.primary} />
+            <TouchableOpacity onPress={handleCopyReferralCode}>
+              <IconSymbol name="doc.on.doc" size={20} color={colors.primary} />
             </TouchableOpacity>
           </View>
         </View>
 
+        {/* Share Button - Full width with proper spacing */}
         <TouchableOpacity style={styles.shareButton} onPress={handleShareReferral}>
           <IconSymbol name="paperplane.fill" size={16} color={colors.card} />
           <Text style={commonStyles.buttonText}>Compartir Código</Text>
         </TouchableOpacity>
       </View>
 
-      {/* How it Works */}
-      <View style={[commonStyles.card, { marginTop: 16 }]}>
+      {/* How it Works - Proper spacing from referral program block */}
+      <View style={[commonStyles.card, styles.howItWorksCard]}>
         <Text style={commonStyles.heading}>¿Cómo Funciona?</Text>
         <View style={styles.howItWorks}>
           <View style={styles.stepItem}>
@@ -344,17 +361,21 @@ export default function PromotionsScreen() {
         </View>
 
         {/* Content */}
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.content} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
           {selectedTab === 'active' && (
             activePromotions.length > 0 ? (
               activePromotions.map(renderPromotionCard)
             ) : (
               <View style={[commonStyles.center, { marginTop: 50 }]}>
                 <IconSymbol name="tag" size={48} color={colors.textSecondary} />
-                <Text style={[commonStyles.text, { marginTop: 16, textAlign: 'center' }]}>
+                <Text style={[commonStyles.text, { marginTop: spacing.lg, textAlign: 'center' }]}>
                   No hay promociones activas
                 </Text>
-                <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginTop: 8 }]}>
+                <Text style={[commonStyles.textSecondary, { textAlign: 'center', marginTop: spacing.sm }]}>
                   ¡Mantente atento a nuevas ofertas!
                 </Text>
               </View>
@@ -371,26 +392,25 @@ export default function PromotionsScreen() {
 
 const styles = StyleSheet.create({
   header: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
   },
   tabSelector: {
     flexDirection: 'row',
     backgroundColor: colors.background,
-    borderRadius: 12,
-    padding: 4,
-    marginTop: 16,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xs,
+    marginTop: spacing.lg,
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: spacing.sm,
   },
   tabActive: {
     backgroundColor: colors.card,
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-    elevation: 2,
+    ...commonStyles.shadowSm,
   },
   tabText: {
     fontSize: 14,
@@ -403,15 +423,18 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
+  },
+  scrollContent: {
+    paddingBottom: spacing.xxxl, // 24-32dp bottom padding to avoid tab bar overlap
   },
   promotionCard: {
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   promotionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   promotionIcon: {
     width: 48,
@@ -419,46 +442,46 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
+    marginRight: spacing.lg,
   },
   promotionInfo: {
     flex: 1,
   },
   promotionDetails: {
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   claimButton: {
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: spacing.md,
+    borderRadius: spacing.sm,
     alignItems: 'center',
   },
   loyaltyContainer: {
-    paddingBottom: 20,
+    paddingBottom: spacing.xl,
   },
   loyaltyCard: {
     alignItems: 'center',
   },
   loyaltyHeader: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: spacing.xl,
   },
   tierBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginBottom: 12,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: spacing.xl,
+    marginBottom: spacing.md,
   },
   tierText: {
     fontSize: 14,
     fontWeight: '700',
     color: colors.card,
-    marginLeft: 8,
+    marginLeft: spacing.sm,
   },
   pointsContainer: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: spacing.xl,
   },
   pointsValue: {
     fontSize: 36,
@@ -471,90 +494,111 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     width: '100%',
-    height: 8,
+    height: spacing.sm,
     backgroundColor: colors.background,
-    borderRadius: 4,
-    marginBottom: 8,
+    borderRadius: spacing.xs,
+    marginBottom: spacing.sm,
   },
   progressFill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: spacing.xs,
   },
   rewardCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   rewardInfo: {
     flex: 1,
   },
   redeemButton: {
     backgroundColor: colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: spacing.sm,
   },
   redeemButtonDisabled: {
     backgroundColor: colors.background,
   },
   referralContainer: {
-    paddingBottom: 20,
+    paddingBottom: spacing.xl,
   },
   referralCard: {
     alignItems: 'center',
   },
   referralHeader: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: spacing.xl,
   },
-  referralStats: {
+  
+  // Metrics in separate mini-cards with equal width
+  metricsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     width: '100%',
-    marginBottom: 20,
+    marginBottom: spacing.xl,
+    gap: spacing.sm,
   },
-  statItem: {
+  metricCard: {
+    flex: 1,
+    backgroundColor: '#F5F7FA', // Specified background color
+    padding: spacing.md, // 12dp padding
+    borderRadius: borderRadius.lg, // 10dp radius
     alignItems: 'center',
   },
-  statValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.primary,
+  metricTitle: {
+    fontSize: 12, // 12sp
+    color: '#6B7280', // Specified color
+    marginBottom: spacing.xs,
   },
+  metricValue: {
+    fontSize: 18, // 18sp
+    fontWeight: '700', // Bold
+    color: '#0B60D1', // Specified primary color
+  },
+  
   referralCodeContainer: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: spacing.xl,
   },
   referralCode: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.background,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginTop: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: spacing.sm,
+    marginTop: spacing.sm,
   },
   referralCodeText: {
     fontSize: 18,
     fontWeight: '700',
     color: colors.text,
-    marginRight: 12,
+    marginRight: spacing.md,
   },
   shareButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingHorizontal: spacing.xxl,
+    paddingVertical: spacing.md,
+    borderRadius: spacing.sm,
+    marginTop: spacing.md, // 12dp marginTop
+    width: '100%', // Full width
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
+  
+  // Proper spacing between blocks
+  howItWorksCard: {
+    marginTop: spacing.lg, // 12-16dp space between blocks
   },
   howItWorks: {
-    marginTop: 16,
+    marginTop: spacing.lg,
   },
   stepItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   stepNumber: {
     width: 24,
@@ -563,7 +607,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: spacing.md,
   },
   stepNumberText: {
     fontSize: 12,

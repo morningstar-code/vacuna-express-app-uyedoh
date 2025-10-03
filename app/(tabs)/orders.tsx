@@ -14,7 +14,7 @@ import { IconSymbol } from '@/components/IconSymbol';
 import { colors, commonStyles, spacing, borderRadius, shadows, typography } from '@/styles/commonStyles';
 import { Order } from '@/types/vaccine';
 
-// Mock orders data
+// Mock orders data with updated structure
 const mockOrders: Order[] = [
   {
     id: 'VE-2025-001',
@@ -64,12 +64,30 @@ const mockOrders: Order[] = [
     progress: 25,
     paymentStatus: 'paid',
   },
+  {
+    id: 'VE-2025-004',
+    userId: 'user1',
+    items: [
+      { vaccineId: 'tdap', vaccineName: 'Tdap', dose: 'Refuerzo', quantity: 1, price: 40.00 },
+    ],
+    totalAmount: 40.00,
+    status: 'received',
+    orderDate: '2025-01-13T11:00:00Z',
+    deliveryDate: '2025-01-13T17:30:00Z',
+    trackingNumber: 'VE001234570',
+    progress: 100,
+    doctorConfirmation: true,
+    receiptUploaded: true,
+    paymentStatus: 'paid',
+    receivedAt: '2025-01-13T17:45:00Z',
+  },
 ];
 
 type OrderStatus = 'all' | 'pending' | 'in_process' | 'delivered';
 
 export default function OrdersScreen() {
   const [selectedTab, setSelectedTab] = useState<OrderStatus>('all');
+  const [orders, setOrders] = useState(mockOrders);
 
   const tabs = [
     { id: 'all' as OrderStatus, label: 'Todos' },
@@ -81,13 +99,13 @@ export default function OrdersScreen() {
   const getFilteredOrders = () => {
     switch (selectedTab) {
       case 'pending':
-        return mockOrders.filter(order => ['pending', 'confirmed'].includes(order.status));
+        return orders.filter(order => ['pending', 'confirmed'].includes(order.status));
       case 'in_process':
-        return mockOrders.filter(order => ['preparing', 'dispatched', 'in_transit'].includes(order.status));
+        return orders.filter(order => ['preparing', 'dispatched', 'in_transit'].includes(order.status));
       case 'delivered':
-        return mockOrders.filter(order => ['delivered', 'received'].includes(order.status));
+        return orders.filter(order => ['delivered', 'received'].includes(order.status));
       default:
-        return mockOrders;
+        return orders;
     }
   };
 
@@ -101,8 +119,9 @@ export default function OrdersScreen() {
       case 'in_transit':
         return '#0B60D1'; // Primary for current
       case 'delivered':
+        return '#19C37D'; // Success for delivered
       case 'received':
-        return '#19C37D'; // Success for completed
+        return '#19C37D'; // Success for received
       case 'cancelled':
         return colors.error;
       default:
@@ -132,6 +151,15 @@ export default function OrdersScreen() {
     });
   };
 
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleString('es-DO', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   const formatCurrency = (amount: number) => {
     return `RD$ ${amount.toLocaleString('es-DO', { minimumFractionDigits: 2 })}`;
   };
@@ -151,8 +179,8 @@ export default function OrdersScreen() {
     if (order.status === 'delivered' && !order.doctorConfirmation) {
       return '✅ Entregado — Esperando confirmación del doctor';
     }
-    if (order.status === 'delivered' && order.doctorConfirmation) {
-      return '✅ Entregado y confirmado';
+    if (order.status === 'received' && order.receivedAt) {
+      return `✔ Recibido por el doctor — ${formatDateTime(order.receivedAt)}`;
     }
     return `📅 Pedido realizado el ${formatDate(order.orderDate)}`;
   };
@@ -192,7 +220,32 @@ export default function OrdersScreen() {
       `¿Confirmas que has recibido el pedido ${order.id}?`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Confirmar', onPress: () => console.log('Order marked as received') },
+        { 
+          text: 'Confirmar', 
+          onPress: () => {
+            // Optimistic update
+            const updatedOrders = orders.map(o => 
+              o.id === order.id 
+                ? { 
+                    ...o, 
+                    status: 'received' as Order['status'], 
+                    doctorConfirmation: true,
+                    receivedAt: new Date().toISOString()
+                  }
+                : o
+            );
+            setOrders(updatedOrders);
+            
+            // Show success toast
+            Alert.alert('Confirmado', 'Pedido marcado como recibido');
+            
+            // Here you would make the API call
+            console.log('POST /orders/${order.id}/confirm-received', {
+              receivedAt: new Date().toISOString(),
+              userId: order.userId
+            });
+          }
+        },
       ]
     );
   };
@@ -205,6 +258,9 @@ export default function OrdersScreen() {
           Pedido #{order.id} • {getVaccineCount(order.items)} • {formatCurrency(order.totalAmount)}
         </Text>
         <View style={[styles.statusChip, { backgroundColor: getStatusColor(order.status) }]}>
+          {order.status === 'received' && (
+            <IconSymbol name="checkmark" size={12} color="#FFFFFF" style={{ marginRight: 2 }} />
+          )}
           <Text style={styles.statusChipText}>{getStatusText(order.status)}</Text>
         </View>
       </View>
@@ -238,13 +294,22 @@ export default function OrdersScreen() {
       {/* Doctor Confirmation Banner */}
       {order.status === 'delivered' && !order.doctorConfirmation && (
         <View style={styles.confirmationBanner}>
-          <Text style={styles.confirmationText}>Esperando confirmación del doctor</Text>
+          <Text style={styles.confirmationText}>⌛ Esperando confirmación del doctor</Text>
           <TouchableOpacity
             style={styles.confirmButton}
             onPress={() => handleMarkAsReceived(order)}
           >
             <Text style={styles.confirmButtonText}>Marcar como Recibido</Text>
           </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Success Banner for Received Orders */}
+      {order.status === 'received' && order.doctorConfirmation && order.receivedAt && (
+        <View style={styles.successBanner}>
+          <Text style={styles.successText}>
+            ✔ Recibido por el doctor — {formatDateTime(order.receivedAt)}
+          </Text>
         </View>
       )}
 
@@ -350,21 +415,21 @@ export default function OrdersScreen() {
 const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
   },
 
-  // Compact Segmented Control Tabs
+  // Compact Segmented Control Tabs (36-40dp height)
   tabsContainer: {
     paddingVertical: spacing.sm,
   },
   tabsContent: {
-    paddingHorizontal: spacing.lg,
-    gap: 6, // 6-8dp spacing between segments
+    paddingHorizontal: spacing.lg, // 16dp horizontal padding
+    gap: spacing.sm, // 8dp gap between segments
   },
   tab: {
-    paddingHorizontal: 16, // 12-16dp horizontal padding
+    paddingHorizontal: spacing.lg, // 12-16dp horizontal padding
     paddingVertical: 10,
-    borderRadius: 16, // 16dp radius for pill shape
+    borderRadius: spacing.lg, // 16dp radius for pill shape
     backgroundColor: '#F2F3F5', // Inactive background
     minHeight: 36, // 36-40dp total height
     justifyContent: 'center',
@@ -389,21 +454,21 @@ const styles = StyleSheet.create({
   },
   ordersContent: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.xxxl, // 24-32dp bottom padding to avoid tab bar overlap
   },
 
-  // Compact Order Cards
+  // Compact Order Cards (marginBottom: 14dp, padding: 14-16dp)
   orderCard: {
     backgroundColor: colors.card,
-    borderRadius: 12, // 12dp radius
-    padding: 14, // 12-16dp padding
-    marginBottom: 12, // 10-12dp vertical spacing
+    borderRadius: borderRadius.xl, // 12dp radius
+    padding: 16, // 14-16dp padding
+    marginBottom: 14, // 14dp vertical spacing - cards never touch
     borderWidth: 1,
     borderColor: '#E5E5EA',
     maxHeight: 160, // Keep under 160dp as specified
   },
 
-  // Header Line (single row)
+  // Header Line (single row) - Format: "Pedido #VE-2025-001 • 2 vacunas • RD$ 1,680.00"
   orderHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -411,14 +476,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   orderTitle: {
-    fontSize: 14,
+    fontSize: 16, // 16sp bold
     fontWeight: '700', // Weight 700 for title
+    lineHeight: 22, // 22-24 line height
     color: colors.text,
     flex: 1,
     marginRight: spacing.sm,
   },
 
-  // Status Chip
+  // Status Chip (24dp height, radius 12, paddingHorizontal 10)
   statusChip: {
     paddingHorizontal: 10, // 10dp horizontal padding
     paddingVertical: 4,
@@ -426,6 +492,7 @@ const styles = StyleSheet.create({
     minHeight: 24, // 24dp height
     justifyContent: 'center',
     alignItems: 'center',
+    flexDirection: 'row',
   },
   statusChipText: {
     fontSize: 12, // 12sp chip text
@@ -433,25 +500,27 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  // Progress Bar (small horizontal bar)
+  // Progress Bar (3-4dp height, marginTop 8dp)
   progressContainer: {
     marginBottom: spacing.sm,
   },
   progressBar: {
-    height: 3, // 2-4dp height
+    height: 4, // 3-4dp height
     backgroundColor: '#E5E5EA',
     borderRadius: 2,
     overflow: 'hidden',
+    marginTop: spacing.sm, // 8dp marginTop
   },
   progressFill: {
     height: '100%',
     borderRadius: 2,
   },
 
-  // Meta Information
+  // Meta Information (14sp, #374151, marginTop 6-8dp)
   metaText: {
-    fontSize: 14, // 14-15sp body text
-    color: colors.textSecondary,
+    fontSize: 14, // 14sp
+    color: '#374151', // Specified color
+    marginTop: spacing.sm, // 6-8dp marginTop
     marginBottom: spacing.sm,
     lineHeight: 18,
   },
@@ -461,7 +530,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.sm,
-    gap: 4,
+    gap: spacing.xs,
   },
   paymentPendingText: {
     fontSize: 12,
@@ -469,11 +538,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Doctor Confirmation Banner
+  // Doctor Confirmation Banner (bg #FFF6D6, padding 10dp, radius 10dp, marginTop 10dp)
   confirmationBanner: {
-    backgroundColor: colors.background,
-    borderRadius: 8,
-    padding: spacing.sm,
+    backgroundColor: '#FFF6D6', // Specified background
+    borderRadius: borderRadius.lg, // 10dp radius
+    padding: borderRadius.lg, // 10dp padding
+    marginTop: borderRadius.lg, // 10dp marginTop
     marginBottom: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
@@ -486,9 +556,9 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     backgroundColor: colors.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: spacing.xs,
   },
   confirmButtonText: {
     fontSize: 12,
@@ -496,16 +566,30 @@ const styles = StyleSheet.create({
     color: colors.card,
   },
 
-  // Action Buttons (wrap if needed)
+  // Success Banner for received orders
+  successBanner: {
+    backgroundColor: '#F0F9FF',
+    borderRadius: borderRadius.lg,
+    padding: borderRadius.lg,
+    marginBottom: spacing.sm,
+  },
+  successText: {
+    fontSize: 12,
+    color: colors.success,
+    fontWeight: '600',
+  },
+
+  // Action Buttons (marginTop 10-12dp, gap 8dp, wrap allowed, height 36-40dp)
   actionButtons: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: spacing.sm, // 8dp gap
+    marginTop: spacing.md, // 10-12dp marginTop
   },
   actionButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: spacing.xs,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,

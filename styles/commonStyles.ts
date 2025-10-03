@@ -8,7 +8,7 @@ export const colors = {
   text: '#1A202C',
   textSecondary: '#718096',
   textTertiary: '#A0AEC0',
-  primary: '#007BFF', // Updated to requested primary blue
+  primary: '#0B60D1', // Updated to match requirements
   primaryLight: '#3182CE',
   primaryDark: '#2C5282',
   secondary: '#4A5568',
@@ -21,7 +21,7 @@ export const colors = {
   borderLight: '#EDF2F7',
   error: '#E53E3E',
   errorLight: '#FC8181',
-  success: '#38A169',
+  success: '#19C37D', // Updated to match requirements
   successLight: '#68D391',
   warning: '#D69E2E',
   warningLight: '#F6E05E',
@@ -29,17 +29,18 @@ export const colors = {
   infoLight: '#63B3ED',
   
   // Semantic colors
-  delivery: '#38A169',
-  pending: '#D69E2E',
-  completed: '#38A169',
+  delivery: '#19C37D',
+  pending: '#C7C7CC',
+  completed: '#19C37D',
   cancelled: '#E53E3E',
   
   // Gradients
-  primaryGradient: ['#007BFF', '#3182CE'], // Updated primary gradient
-  successGradient: ['#38A169', '#48BB78'],
+  primaryGradient: ['#0B60D1', '#3182CE'],
+  successGradient: ['#19C37D', '#48BB78'],
   warningGradient: ['#D69E2E', '#F6E05E'],
 };
 
+// 8pt spacing scale (4/8/12/16/20/24)
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -53,9 +54,9 @@ export const spacing = {
 export const borderRadius = {
   sm: 6,
   md: 8,
-  lg: 12,
-  xl: 16,
-  xxl: 20,
+  lg: 10,
+  xl: 12,
+  xxl: 16,
   full: 9999,
 };
 
@@ -90,51 +91,52 @@ export const shadows = {
   },
 };
 
+// Typography with proper line heights: fontSize * 1.35 (titles) / 1.45 (body)
 export const typography = {
   h1: {
     fontSize: 32,
     fontWeight: '700' as const,
-    lineHeight: 40,
+    lineHeight: 43, // 32 * 1.35
   },
   h2: {
     fontSize: 28,
     fontWeight: '600' as const,
-    lineHeight: 36,
+    lineHeight: 38, // 28 * 1.35
   },
   h3: {
     fontSize: 24,
     fontWeight: '600' as const,
-    lineHeight: 32,
+    lineHeight: 32, // 24 * 1.35
   },
   h4: {
     fontSize: 20,
     fontWeight: '600' as const,
-    lineHeight: 28,
+    lineHeight: 27, // 20 * 1.35
   },
   h5: {
     fontSize: 18,
     fontWeight: '600' as const,
-    lineHeight: 24,
+    lineHeight: 24, // 18 * 1.35
   },
   h6: {
     fontSize: 16,
     fontWeight: '600' as const,
-    lineHeight: 22,
+    lineHeight: 22, // 16 * 1.35
   },
   body1: {
     fontSize: 16,
     fontWeight: '400' as const,
-    lineHeight: 24,
+    lineHeight: 23, // 16 * 1.45
   },
   body2: {
     fontSize: 14,
     fontWeight: '400' as const,
-    lineHeight: 20,
+    lineHeight: 20, // 14 * 1.45
   },
   caption: {
     fontSize: 12,
     fontWeight: '400' as const,
-    lineHeight: 16,
+    lineHeight: 17, // 12 * 1.45
   },
   button: {
     fontSize: 16,
@@ -233,7 +235,7 @@ export const commonStyles = StyleSheet.create({
   // Cards
   card: {
     backgroundColor: colors.card,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.xl,
     padding: spacing.lg,
     marginVertical: spacing.sm,
     ...shadows.md,
@@ -242,14 +244,14 @@ export const commonStyles = StyleSheet.create({
   },
   cardElevated: {
     backgroundColor: colors.card,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.xl,
     padding: spacing.lg,
     marginVertical: spacing.sm,
     ...shadows.lg,
   },
   cardFlat: {
     backgroundColor: colors.card,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.xl,
     padding: spacing.lg,
     marginVertical: spacing.sm,
     borderWidth: 1,
@@ -257,7 +259,7 @@ export const commonStyles = StyleSheet.create({
   },
   cardCompact: {
     backgroundColor: colors.card,
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.lg,
     padding: spacing.md,
     marginVertical: spacing.xs,
     ...shadows.sm,
@@ -269,17 +271,17 @@ export const commonStyles = StyleSheet.create({
   title: {
     ...typography.h2,
     color: colors.text,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md, // 12-16dp for section titles
   },
   subtitle: {
     ...typography.h4,
     color: colors.text,
-    marginBottom: spacing.xs,
+    marginBottom: spacing.md, // 12-16dp for section titles
   },
   heading: {
     ...typography.h5,
     color: colors.text,
-    marginBottom: spacing.xs,
+    marginBottom: spacing.sm, // 6-8dp for card body spacing
   },
   text: {
     ...typography.body1,
