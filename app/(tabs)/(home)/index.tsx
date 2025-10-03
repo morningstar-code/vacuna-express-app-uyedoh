@@ -39,14 +39,19 @@ export default function HomeScreen() {
     router.push('/promotions');
   };
 
+  const handleEducation = () => {
+    console.log('Opening education');
+    router.push('/(tabs)/education');
+  };
+
   const getNotificationTypeChip = (type: string) => {
     switch (type) {
       case 'promotion':
-        return { color: colors.success, text: 'Promoción' };
+        return { color: '#19C37D', text: 'Promoción' }; // Green
       case 'reminder':
-        return { color: colors.primary, text: 'Recordatorio' };
+        return { color: colors.primary, text: 'Recordatorio' }; // Blue
       case 'shipment':
-        return { color: colors.warning, text: 'Pedido' };
+        return { color: '#FF9500', text: 'Pedido' }; // Orange
       default:
         return { color: colors.secondary, text: 'Info' };
     }
@@ -134,7 +139,26 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Categories - Horizontal Scrollable */}
+        {/* Education Section - Added to Home */}
+        <View style={styles.section}>
+          <TouchableOpacity 
+            style={styles.educationCard}
+            onPress={handleEducation}
+          >
+            <View style={styles.educationIcon}>
+              <IconSymbol name="book.fill" size={24} color={colors.primary} />
+            </View>
+            <View style={styles.educationContent}>
+              <Text style={styles.educationTitle}>Recursos Educativos</Text>
+              <Text style={styles.educationSubtitle}>
+                Aprende sobre vacunas, prevención y salud
+              </Text>
+            </View>
+            <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Categories - Horizontal Scrollable with Cards and Shadows */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Categorías de Vacunas</Text>
           <ScrollView 
@@ -188,10 +212,10 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
 
-        {/* Promotions */}
+        {/* Promotions - Enhanced with better spacing and typography */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Promociones</Text>
+            <Text style={styles.sectionTitleLarge}>Promociones</Text>
             <TouchableOpacity onPress={handleViewAllPromotions} style={styles.seeAllButton}>
               <Text style={styles.seeAllText}>Ver todas</Text>
               <IconSymbol name="chevron.right" size={16} color={colors.primary} />
@@ -201,7 +225,7 @@ export default function HomeScreen() {
           {getActivePromotions().slice(0, 2).map((promotion) => (
             <View key={promotion.id} style={styles.promotionCard}>
               <View style={styles.promotionHeader}>
-                <View style={[styles.typeChip, { backgroundColor: colors.success }]}>
+                <View style={[styles.typeChip, { backgroundColor: '#19C37D' }]}>
                   <Text style={styles.typeChipText}>Promoción</Text>
                 </View>
                 <Text style={styles.promotionDiscount}>-{promotion.discountValue}%</Text>
@@ -217,10 +241,10 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        {/* Recent Notifications */}
+        {/* Recent Notifications - Enhanced with better spacing and typography */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Notificaciones Recientes</Text>
+            <Text style={styles.sectionTitleLarge}>Notificaciones Recientes</Text>
             <TouchableOpacity onPress={handleNotifications} style={styles.seeAllButton}>
               <Text style={styles.seeAllText}>Ver todas</Text>
               <IconSymbol name="chevron.right" size={16} color={colors.primary} />
@@ -304,20 +328,26 @@ const styles = StyleSheet.create({
   },
   
   section: {
-    marginBottom: spacing.xl, // Increased margin between sections (20-24dp)
+    marginBottom: spacing.xl + 4, // Increased margin between sections (24dp)
     paddingHorizontal: spacing.lg,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg, // Increased spacing
   },
   sectionTitle: {
     fontSize: 16, // Reduced from 18 to 16 for subtitles
     fontWeight: '600',
     color: colors.text,
     lineHeight: 22, // 1.4 line height
+  },
+  sectionTitleLarge: {
+    fontSize: 18, // Larger and bolder for main sections
+    fontWeight: '700',
+    color: colors.text,
+    lineHeight: 25, // 1.4 line height
   },
   seeAllButton: {
     flexDirection: 'row',
@@ -373,6 +403,43 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 16,
   },
+
+  // Education Card - Added to Home
+  educationCard: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    ...shadows.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  educationIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.xl,
+    backgroundColor: colors.primary + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+  },
+  educationContent: {
+    flex: 1,
+  },
+  educationTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+    lineHeight: 22,
+    marginBottom: 2,
+  },
+  educationSubtitle: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#6B7280',
+    lineHeight: 19,
+  },
   
   categoriesContainer: {
     paddingRight: spacing.lg,
@@ -384,7 +451,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 120, // Reduced from 140
     marginRight: spacing.md,
-    ...shadows.sm,
+    ...shadows.sm, // Added shadow for professional look
     borderWidth: 1,
     borderColor: colors.border,
   },
@@ -417,8 +484,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderRadius: 12,
     padding: spacing.lg,
-    marginBottom: spacing.md,
-    ...shadows.sm,
+    marginBottom: spacing.lg, // Increased spacing between cards
+    ...shadows.sm, // Added subtle shadow
     borderWidth: 1,
     borderColor: colors.border,
     position: 'relative',
@@ -469,8 +536,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderRadius: 12,
     padding: spacing.lg,
-    marginBottom: spacing.md,
-    ...shadows.sm,
+    marginBottom: spacing.lg, // Increased spacing between cards
+    ...shadows.sm, // Added subtle shadow
     borderWidth: 1,
     borderColor: colors.border,
     position: 'relative',

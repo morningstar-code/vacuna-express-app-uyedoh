@@ -174,12 +174,12 @@ export default function CatalogScreen() {
   return (
     <SafeAreaView style={commonStyles.safeArea}>
       <View style={commonStyles.container}>
-        {/* Header with Cart Button */}
+        {/* Header with Fixed Cart Button */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <Text style={commonStyles.title}>Catálogo de Vacunas</Text>
             
-            {/* Floating Cart Button in Header */}
+            {/* Fixed Floating Cart Button in Header - Round, white background, gray border, blue icon */}
             <TouchableOpacity
               style={styles.headerCartButton}
               onPress={() => router.push('/cart')}
@@ -252,7 +252,7 @@ export default function CatalogScreen() {
           )}
         </ScrollView>
 
-        {/* Floating Cart Button at Bottom */}
+        {/* Floating Cart Button at Bottom - Always visible throughout catalog flow */}
         <FloatingCartButton
           itemCount={cartItemCount}
           totalAmount={cartTotal}
@@ -274,18 +274,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  // Header Cart Button (top-right)
+  // Fixed Header Cart Button - Round, white background, gray border, blue icon
   headerCartButton: {
     position: 'relative',
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: colors.card,
+    padding: 10,
+    borderRadius: 24, // Round floating button
+    backgroundColor: '#FFFFFF', // White background as specified
     borderWidth: 1,
-    borderColor: colors.border,
-    minWidth: 44,
-    minHeight: 44,
+    borderColor: '#E5E5EA', // Light gray border as specified
+    minWidth: 48,
+    minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',
+    // Shadow for floating effect
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
   },
   cartBadge: {
     position: 'absolute',
@@ -354,7 +360,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
 
-  // Updated Product Card Layout
+  // Updated Product Card Layout with consistent icons and professional cards with shadows
   vaccineCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
@@ -363,7 +369,7 @@ const styles = StyleSheet.create({
     borderColor: '#E5E5EA',
     position: 'relative',
     overflow: 'visible',
-    ...shadows.sm,
+    ...shadows.sm, // Light shadow for professional look
   },
   
   // Discount Badge - Fixed positioning with proper spacing

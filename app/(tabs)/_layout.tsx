@@ -80,6 +80,19 @@ export default function TabLayout() {
           ),
         }}
       />
+      {/* Hide Education and Notifications tabs - they are removed from navigation */}
+      <Tabs.Screen
+        name="education"
+        options={{
+          href: null, // This hides the tab from the tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          href: null, // This hides the tab from the tab bar
+        }}
+      />
     </Tabs>
   );
 }

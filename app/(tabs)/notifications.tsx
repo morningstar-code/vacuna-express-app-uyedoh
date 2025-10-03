@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start', // Changed to flex-start to prevent text cutoff
+    alignItems: 'center',
     marginBottom: 16,
     minHeight: 44, // Ensure minimum height for touch target
   },
@@ -304,14 +304,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     flexShrink: 0, // Prevent shrinking
-    maxWidth: '50%', // Prevent taking too much space
+    maxWidth: 140, // Fixed width to prevent text cutoff
   },
   markAllText: {
-    fontSize: 14,
+    fontSize: 12, // Reduced font size to fit better
     fontWeight: '600',
     color: colors.primary,
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 16,
+    numberOfLines: 2, // Allow text wrapping if needed
   },
   tabSelector: {
     flexDirection: 'row',
@@ -327,7 +328,10 @@ const styles = StyleSheet.create({
   },
   tabActive: {
     backgroundColor: colors.card,
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     elevation: 2,
   },
   tabText: {

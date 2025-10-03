@@ -74,17 +74,25 @@ export default function FloatingCartButton({
         >
           <View style={styles.content}>
             <View style={styles.leftSection}>
-              <IconSymbol name="cart.fill" size={20} color="#FFFFFF" />
+              <View style={styles.cartIconContainer}>
+                <IconSymbol name="cart.fill" size={20} color="#0B60D1" />
+                {/* Red badge with counter */}
+                <View style={styles.cartBadge}>
+                  <Text style={styles.cartBadgeText}>
+                    {itemCount > 99 ? '99+' : itemCount}
+                  </Text>
+                </View>
+              </View>
               <Text style={styles.itemText}>
-                🛒 Carrito ({itemCount})
+                Carrito ({itemCount})
               </Text>
             </View>
             
             <View style={styles.rightSection}>
               <Text style={styles.totalText}>
-                Total: ${totalAmount.toFixed(2)}
+                ${totalAmount.toFixed(2)}
               </Text>
-              <IconSymbol name="arrow.right" size={16} color="#FFFFFF" />
+              <IconSymbol name="arrow.right" size={16} color="#0B60D1" />
             </View>
           </View>
         </TouchableOpacity>
@@ -107,23 +115,25 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   button: {
-    backgroundColor: '#007BFF', // Primary blue as specified
-    borderRadius: 24, // 24dp radius as specified
+    backgroundColor: '#FFFFFF', // White background as specified
+    borderRadius: 24, // Round floating button
     paddingHorizontal: 20,
     paddingVertical: 16,
     minHeight: 56, // Ensure good touch target
+    borderWidth: 1,
+    borderColor: '#E5E5EA', // Light gray border as specified
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.15,
         shadowRadius: 8,
       },
       android: {
         elevation: 8,
       },
       web: {
-        boxShadow: '0 4px 16px rgba(0, 123, 255, 0.3)',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)',
       },
     }),
   },
@@ -137,19 +147,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
+  cartIconContainer: {
+    position: 'relative',
+    marginRight: 12,
+  },
+  cartBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#FF3B30', // Red badge as specified
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
+  cartBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 16,
+  },
   rightSection: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
   itemText: {
-    color: '#FFFFFF',
+    color: '#0B60D1', // Blue text as specified
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: 8,
   },
   totalText: {
-    color: '#FFFFFF',
+    color: '#0B60D1', // Blue text as specified
     fontSize: 16,
     fontWeight: '700',
   },
