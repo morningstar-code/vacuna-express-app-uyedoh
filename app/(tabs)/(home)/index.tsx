@@ -1,7 +1,9 @@
 
+import React, { useState, useEffect } from 'react';
 import { IconSymbol } from '@/components/IconSymbol';
+import { colors, commonStyles, spacing, borderRadius, shadows, typography } from '@/styles/commonStyles';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router } from 'expo-router';
-import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,78 +13,147 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import { getActivePromotions, sampleNotifications } from '@/data/vaccines';
-import { colors, commonStyles, spacing, borderRadius, shadows, typography } from '@/styles/commonStyles';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
+
+interface Promotion {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  discount_value: number;
+  valid_to: string;
+}
+
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  created_at: string;
+  is_read: boolean;
+}
 
 export default function HomeScreen() {
-  // Mock user data - in a real app this would come from authentication
-  const doctorName = "Dr. María González";
+  const { profile, signOut } = useAuth();
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (profile) {
+      fetchPromotions();
+      fetchNotifications();
+    }
+  }, [profile]);
+
+  const fetchPromotions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('promotions')
+        .select('*')
+        .eq('is_active', true)
+        .gte('valid_to', new Date().toISOString())
+        .limit(3);
+
+      if (error) {
+        console.error('Error fetching promotions:', error);
+      } else {
+        setPromotions(data || []);
+      }
+    } catch (error) {
+      console.error('Exception fetching promotions:', error);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    if (!profile) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', profile.user_id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error('Error fetching notifications:', error);
+      } else {
+        setNotifications(data || []);
+        const unread = data?.filter(n => !n.is_read).length || 0;
+        setUnreadCount(unread);
+      }
+    } catch (error) {
+      console.error('Exception fetching notifications:', error);
+    }
+  };
 
   const handleQuickAction = (route: string) => {
-    console.log('Navigating to:', route);
-    router.push(route);
+    router.push(route as any);
   };
 
   const handleCategoryPress = (category: string) => {
-    console.log('Category pressed:', category);
-    router.push('/(tabs)/catalog');
+    router.push({
+      pathname: '/(tabs)/catalog',
+      params: { category }
+    });
   };
 
   const handleNotifications = () => {
-    console.log('Opening notifications');
     router.push('/(tabs)/notifications');
   };
 
   const handleViewAllPromotions = () => {
-    console.log('View all promotions');
-    router.push('/promotions');
+    router.push('/(tabs)/promotions');
   };
 
   const handleEducation = () => {
-    console.log('Opening education');
     router.push('/(tabs)/education');
   };
 
   const getNotificationTypeChip = (type: string) => {
-    switch (type) {
-      case 'promotion':
-        return { color: '#19C37D', text: 'Promoción' }; // Green
-      case 'reminder':
-        return { color: colors.primary, text: 'Recordatorio' }; // Blue
-      case 'shipment':
-        return { color: '#FF9500', text: 'Pedido' }; // Orange
-      default:
-        return { color: colors.secondary, text: 'Info' };
-    }
+    const colors_map = {
+      reminder: colors.info,
+      promotion: colors.success,
+      shipment: colors.warning,
+      educational: colors.secondary,
+    };
+    return colors_map[type as keyof typeof colors_map] || colors.secondary;
   };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Hace unos minutos';
+    if (diffInHours < 24) return `Hace ${diffInHours}h`;
+    if (diffInHours < 48) return 'Ayer';
+    return date.toLocaleDateString('es-DO');
+  };
+
+  if (!profile) {
+    return null; // This shouldn't happen due to auth guard, but just in case
+  }
 
   return (
     <SafeAreaView style={commonStyles.safeArea}>
       <Stack.Screen options={{ headerShown: false }} />
-      
-      <ScrollView 
-        style={commonStyles.container}
-        contentContainerStyle={{ paddingBottom: 32 }} // 32dp padding at bottom
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header with notification icon next to greeting */}
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Header */}
         <View style={styles.header}>
-          <View style={styles.greetingContainer}>
-            <View style={styles.greetingText}>
-              <Text style={styles.greeting}>👋 Hola, {doctorName}</Text>
-              <Text style={styles.welcomeText}>Bienvenido a VacunaExpress</Text>
+          <View style={styles.headerContent}>
+            <View style={styles.greetingContainer}>
+              <Text style={styles.greeting}>👋 Hola, Dr. {profile.first_name}</Text>
+              <Text style={styles.businessName}>{profile.business_name}</Text>
             </View>
-            
-            <TouchableOpacity 
-              style={styles.notificationButton}
-              onPress={handleNotifications}
-            >
+            <TouchableOpacity style={styles.notificationButton} onPress={handleNotifications}>
               <IconSymbol name="bell.fill" size={24} color={colors.text} />
-              {sampleNotifications.filter(n => !n.isRead).length > 0 && (
+              {unreadCount > 0 && (
                 <View style={styles.notificationBadge}>
                   <Text style={styles.notificationBadgeText}>
-                    {sampleNotifications.filter(n => !n.isRead).length}
+                    {unreadCount > 9 ? '9+' : unreadCount}
                   </Text>
                 </View>
               )}
@@ -90,457 +161,312 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Quick Actions - 2 per row, smaller and uniform */}
+        {/* Quick Actions */}
         <View style={styles.section}>
-          <View style={styles.quickActions}>
+          <Text style={[commonStyles.subtitle, styles.sectionTitle]}>Acciones Rápidas</Text>
+          <View style={styles.quickActionsGrid}>
             <TouchableOpacity 
-              style={styles.quickActionCard}
+              style={styles.quickActionCard} 
               onPress={() => handleQuickAction('/(tabs)/catalog')}
             >
-              <View style={styles.quickActionIcon}>
-                <IconSymbol name="list.bullet.rectangle" size={20} color={colors.primary} />
-              </View>
-              <Text style={styles.quickActionTitle}>Catálogo</Text>
-              <Text style={styles.quickActionSubtitle}>Explorar vacunas</Text>
+              <IconSymbol name="list.bullet.clipboard.fill" size={32} color={colors.primary} />
+              <Text style={styles.quickActionText}>Catálogo</Text>
             </TouchableOpacity>
-
+            
             <TouchableOpacity 
-              style={styles.quickActionCard}
+              style={styles.quickActionCard} 
               onPress={() => handleQuickAction('/(tabs)/orders')}
             >
-              <View style={styles.quickActionIcon}>
-                <IconSymbol name="shippingbox.fill" size={20} color={colors.primary} />
-              </View>
-              <Text style={styles.quickActionTitle}>Pedidos</Text>
-              <Text style={styles.quickActionSubtitle}>Seguir entregas</Text>
+              <IconSymbol name="shippingbox.fill" size={32} color={colors.warning} />
+              <Text style={styles.quickActionText}>Pedidos</Text>
             </TouchableOpacity>
-
+            
             <TouchableOpacity 
-              style={styles.quickActionCard}
-              onPress={() => handleQuickAction('/promotions')}
+              style={styles.quickActionCard} 
+              onPress={() => handleQuickAction('/(tabs)/promotions')}
             >
-              <View style={styles.quickActionIcon}>
-                <IconSymbol name="tag.fill" size={20} color={colors.primary} />
-              </View>
-              <Text style={styles.quickActionTitle}>Ofertas</Text>
-              <Text style={styles.quickActionSubtitle}>Descuentos activos</Text>
+              <IconSymbol name="tag.fill" size={32} color={colors.success} />
+              <Text style={styles.quickActionText}>Ofertas</Text>
             </TouchableOpacity>
-
+            
             <TouchableOpacity 
-              style={styles.quickActionCard}
+              style={styles.quickActionCard} 
               onPress={() => handleQuickAction('/(tabs)/profile')}
             >
-              <View style={styles.quickActionIcon}>
-                <IconSymbol name="person.fill" size={20} color={colors.primary} />
-              </View>
-              <Text style={styles.quickActionTitle}>Perfil</Text>
-              <Text style={styles.quickActionSubtitle}>Mi cuenta</Text>
+              <IconSymbol name="person.fill" size={32} color={colors.secondary} />
+              <Text style={styles.quickActionText}>Perfil</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Education Section - Added to Home */}
+        {/* Vaccine Categories */}
         <View style={styles.section}>
-          <TouchableOpacity 
-            style={styles.educationCard}
-            onPress={handleEducation}
-          >
-            <View style={styles.educationIcon}>
-              <IconSymbol name="book.fill" size={24} color={colors.primary} />
-            </View>
-            <View style={styles.educationContent}>
-              <Text style={styles.educationTitle}>Recursos Educativos</Text>
-              <Text style={styles.educationSubtitle}>
-                Aprende sobre vacunas, prevención y salud
-              </Text>
-            </View>
-            <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Categories - Horizontal Scrollable with Cards and Shadows */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Categorías de Vacunas</Text>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoriesContainer}
-          >
+          <Text style={[commonStyles.subtitle, styles.sectionTitle]}>Categorías de Vacunas</Text>
+          <View style={styles.categoriesGrid}>
             <TouchableOpacity 
-              style={styles.categoryCard}
+              style={styles.categoryCard} 
               onPress={() => handleCategoryPress('Universal')}
             >
-              <View style={styles.categoryIcon}>
-                <IconSymbol name="globe" size={24} color={colors.primary} />
-              </View>
-              <Text style={styles.categoryTitle}>Universal</Text>
-              <Text style={styles.categorySubtitle}>Todas las edades</Text>
+              <IconSymbol name="globe" size={28} color={colors.info} />
+              <Text style={styles.categoryText}>Universal</Text>
             </TouchableOpacity>
-
+            
             <TouchableOpacity 
-              style={styles.categoryCard}
+              style={styles.categoryCard} 
               onPress={() => handleCategoryPress('Niños')}
             >
-              <View style={styles.categoryIcon}>
-                <IconSymbol name="figure.child" size={24} color={colors.primary} />
-              </View>
-              <Text style={styles.categoryTitle}>Niños</Text>
-              <Text style={styles.categorySubtitle}>Pediatría</Text>
+              <IconSymbol name="figure.child" size={28} color={colors.success} />
+              <Text style={styles.categoryText}>Niños</Text>
             </TouchableOpacity>
-
+            
             <TouchableOpacity 
-              style={styles.categoryCard}
+              style={styles.categoryCard} 
               onPress={() => handleCategoryPress('Adolescentes')}
             >
-              <View style={styles.categoryIcon}>
-                <IconSymbol name="figure.walk" size={24} color={colors.primary} />
-              </View>
-              <Text style={styles.categoryTitle}>Adolescentes</Text>
-              <Text style={styles.categorySubtitle}>11-18 años</Text>
+              <IconSymbol name="figure.walk" size={28} color={colors.warning} />
+              <Text style={styles.categoryText}>Adolescentes</Text>
             </TouchableOpacity>
-
+            
             <TouchableOpacity 
-              style={styles.categoryCard}
+              style={styles.categoryCard} 
               onPress={() => handleCategoryPress('Adultos')}
             >
-              <View style={styles.categoryIcon}>
-                <IconSymbol name="person.2.fill" size={24} color={colors.primary} />
-              </View>
-              <Text style={styles.categoryTitle}>Adultos</Text>
-              <Text style={styles.categorySubtitle}>18+ años</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </View>
-
-        {/* Promotions - Enhanced with better spacing and typography */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitleLarge}>Promociones</Text>
-            <TouchableOpacity onPress={handleViewAllPromotions} style={styles.seeAllButton}>
-              <Text style={styles.seeAllText}>Ver todas</Text>
-              <IconSymbol name="chevron.right" size={16} color={colors.primary} />
+              <IconSymbol name="figure.stand" size={28} color={colors.primary} />
+              <Text style={styles.categoryText}>Adultos</Text>
             </TouchableOpacity>
           </View>
-          
-          {getActivePromotions().slice(0, 2).map((promotion) => (
-            <View key={promotion.id} style={styles.promotionCard}>
-              <View style={styles.promotionHeader}>
-                <View style={[styles.typeChip, { backgroundColor: '#19C37D' }]}>
-                  <Text style={styles.typeChipText}>Promoción</Text>
-                </View>
-                <Text style={styles.promotionDiscount}>-{promotion.discountValue}%</Text>
-              </View>
-              <Text style={styles.promotionTitle}>{promotion.title}</Text>
-              <Text style={styles.promotionDescription} numberOfLines={2}>
-                {promotion.description}
-              </Text>
-              <Text style={styles.promotionExpiry}>
-                Válido hasta: {new Date(promotion.validTo).toLocaleDateString('es-DO')}
-              </Text>
+        </View>
+
+        {/* Promotions */}
+        {promotions.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[commonStyles.subtitle, styles.sectionTitle]}>Promociones</Text>
+              <TouchableOpacity onPress={handleViewAllPromotions}>
+                <Text style={styles.viewAllText}>Ver todas</Text>
+              </TouchableOpacity>
             </View>
-          ))}
-        </View>
-
-        {/* Recent Notifications - Enhanced with better spacing and typography */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitleLarge}>Notificaciones Recientes</Text>
-            <TouchableOpacity onPress={handleNotifications} style={styles.seeAllButton}>
-              <Text style={styles.seeAllText}>Ver todas</Text>
-              <IconSymbol name="chevron.right" size={16} color={colors.primary} />
-            </TouchableOpacity>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.promotionsScroll}>
+              {promotions.map((promotion) => (
+                <View key={promotion.id} style={styles.promotionCard}>
+                  <View style={styles.promotionHeader}>
+                    <IconSymbol name="tag.fill" size={20} color={colors.success} />
+                    <Text style={styles.promotionDiscount}>-{promotion.discount_value}%</Text>
+                  </View>
+                  <Text style={styles.promotionTitle}>{promotion.title}</Text>
+                  <Text style={styles.promotionDescription} numberOfLines={2}>
+                    {promotion.description}
+                  </Text>
+                  <Text style={styles.promotionExpiry}>
+                    Válido hasta: {new Date(promotion.valid_to).toLocaleDateString('es-DO')}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
           </View>
-          
-          {sampleNotifications.slice(0, 3).map((notification) => {
-            const chipData = getNotificationTypeChip(notification.type);
-            return (
+        )}
+
+        {/* Recent Notifications */}
+        {notifications.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[commonStyles.subtitle, styles.sectionTitle]}>Notificaciones Recientes</Text>
+              <TouchableOpacity onPress={handleNotifications}>
+                <Text style={styles.viewAllText}>Ver todas</Text>
+              </TouchableOpacity>
+            </View>
+            {notifications.slice(0, 3).map((notification) => (
               <View key={notification.id} style={styles.notificationCard}>
                 <View style={styles.notificationHeader}>
-                  <View style={[styles.typeChip, { backgroundColor: chipData.color }]}>
-                    <Text style={styles.typeChipText}>{chipData.text}</Text>
+                  <View style={[styles.notificationTypeChip, { backgroundColor: getNotificationTypeChip(notification.type) }]}>
+                    <Text style={styles.notificationTypeText}>{notification.type}</Text>
                   </View>
-                  <Text style={styles.notificationTime}>
-                    {new Date(notification.createdAt).toLocaleDateString('es-DO')}
-                  </Text>
+                  <Text style={styles.notificationTime}>{formatDate(notification.created_at)}</Text>
                 </View>
                 <Text style={styles.notificationTitle}>{notification.title}</Text>
                 <Text style={styles.notificationMessage} numberOfLines={2}>
                   {notification.message}
                 </Text>
-                {!notification.isRead && <View style={styles.unreadDot} />}
               </View>
-            );
-          })}
+            ))}
+          </View>
+        )}
+
+        {/* Education Card */}
+        <View style={styles.section}>
+          <TouchableOpacity style={styles.educationCard} onPress={handleEducation}>
+            <View style={styles.educationContent}>
+              <IconSymbol name="book.fill" size={32} color={colors.primary} />
+              <View style={styles.educationText}>
+                <Text style={styles.educationTitle}>Recursos Educativos</Text>
+                <Text style={styles.educationDescription}>
+                  Aprenda sobre vacunas, protocolos y mejores prácticas
+                </Text>
+              </View>
+              <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+            </View>
+          </TouchableOpacity>
         </View>
+
+        {/* Footer spacing for tab bar */}
+        <View style={styles.footerSpacing} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
+  container: {
+    flex: 1,
     backgroundColor: colors.background,
-    marginBottom: spacing.xl, // Increased margin between sections
   },
-  greetingContainer: {
+  header: {
+    backgroundColor: colors.card,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xl,
+    marginBottom: spacing.lg,
+    ...shadows.sm,
+  },
+  headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
-  greetingText: {
+  greetingContainer: {
     flex: 1,
   },
   greeting: {
-    fontSize: 20,
-    fontWeight: '700',
+    ...typography.h4,
     color: colors.text,
-    lineHeight: 28, // 1.4 line height
-    marginBottom: 2,
+    marginBottom: spacing.xs,
   },
-  welcomeText: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: '#6B7280', // Gray as specified
-    lineHeight: 20, // 1.4 line height
+  businessName: {
+    ...typography.body2,
+    color: colors.textSecondary,
   },
   notificationButton: {
     position: 'relative',
     padding: spacing.sm,
-    marginLeft: spacing.md,
   },
   notificationBadge: {
     position: 'absolute',
-    top: 2,
-    right: 2,
+    top: 4,
+    right: 4,
     backgroundColor: colors.error,
-    borderRadius: borderRadius.full,
-    minWidth: 18,
-    height: 18,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
   notificationBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
     color: colors.card,
+    fontSize: 12,
+    fontWeight: '700',
   },
-  
   section: {
-    marginBottom: spacing.xl + 4, // Increased margin between sections (24dp)
+    marginBottom: spacing.xl,
     paddingHorizontal: spacing.lg,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.lg, // Increased spacing
+    marginBottom: spacing.md,
   },
   sectionTitle: {
-    fontSize: 16, // Reduced from 18 to 16 for subtitles
-    fontWeight: '600',
-    color: colors.text,
-    lineHeight: 22, // 1.4 line height
+    marginBottom: 0,
   },
-  sectionTitleLarge: {
-    fontSize: 18, // Larger and bolder for main sections
-    fontWeight: '700',
-    color: colors.text,
-    lineHeight: 25, // 1.4 line height
-  },
-  seeAllButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  seeAllText: {
-    fontSize: 14,
-    fontWeight: '600',
+  viewAllText: {
+    ...typography.body2,
     color: colors.primary,
-    textDecorationLine: 'underline',
+    fontWeight: '600',
   },
-  
-  // Updated Quick Actions - 2 per row, smaller and uniform
-  quickActions: {
+  quickActionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: spacing.md,
   },
   quickActionCard: {
+    width: '48%',
     backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: spacing.md, // Reduced padding for smaller cards
-    alignItems: 'center',
-    width: '47%', // 2 per row
-    ...shadows.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    minHeight: 100, // Smaller uniform height
-  },
-  quickActionIcon: {
-    width: 40, // Reduced from 48
-    height: 40,
     borderRadius: borderRadius.lg,
-    backgroundColor: colors.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.sm,
-  },
-  quickActionTitle: {
-    fontSize: 14, // Reduced from 15
-    fontWeight: '700',
-    color: colors.text,
-    lineHeight: 19,
-    marginBottom: 2,
-    textAlign: 'center',
-  },
-  quickActionSubtitle: {
-    fontSize: 12, // Reduced from 13
-    fontWeight: '400',
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 16,
-  },
-
-  // Education Card - Added to Home
-  educationCard: {
-    backgroundColor: colors.card,
-    borderRadius: 12,
     padding: spacing.lg,
-    flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: spacing.md,
     ...shadows.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
-  educationIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: borderRadius.xl,
-    backgroundColor: colors.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  educationContent: {
-    flex: 1,
-  },
-  educationTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+  quickActionText: {
+    ...typography.body2,
     color: colors.text,
-    lineHeight: 22,
-    marginBottom: 2,
+    fontWeight: '600',
+    marginTop: spacing.sm,
+    textAlign: 'center',
   },
-  educationSubtitle: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: '#6B7280',
-    lineHeight: 19,
-  },
-  
-  categoriesContainer: {
-    paddingRight: spacing.lg,
+  categoriesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   categoryCard: {
+    width: '48%',
     backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: spacing.md, // Reduced padding
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
     alignItems: 'center',
-    width: 120, // Reduced from 140
-    marginRight: spacing.md,
-    ...shadows.sm, // Added shadow for professional look
-    borderWidth: 1,
-    borderColor: colors.border,
+    marginBottom: spacing.md,
+    ...shadows.sm,
   },
-  categoryIcon: {
-    width: 48, // Reduced from 56
-    height: 48,
-    borderRadius: borderRadius.xl,
-    backgroundColor: colors.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.sm,
-  },
-  categoryTitle: {
-    fontSize: 14, // Reduced from 15
-    fontWeight: '700',
+  categoryText: {
+    ...typography.body2,
     color: colors.text,
-    lineHeight: 19,
-    marginBottom: 2,
+    fontWeight: '600',
+    marginTop: spacing.sm,
     textAlign: 'center',
   },
-  categorySubtitle: {
-    fontSize: 12, // Reduced from 13
-    fontWeight: '400',
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 16,
+  promotionsScroll: {
+    marginHorizontal: -spacing.lg,
+    paddingHorizontal: spacing.lg,
   },
-  
   promotionCard: {
     backgroundColor: colors.card,
-    borderRadius: 12,
+    borderRadius: borderRadius.lg,
     padding: spacing.lg,
-    marginBottom: spacing.lg, // Increased spacing between cards
-    ...shadows.sm, // Added subtle shadow
-    borderWidth: 1,
-    borderColor: colors.border,
-    position: 'relative',
+    marginRight: spacing.md,
+    width: 280,
+    ...shadows.sm,
   },
   promotionHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.sm,
   },
-  typeChip: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: borderRadius.sm,
-  },
-  typeChipText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.card,
-  },
   promotionDiscount: {
-    fontSize: 16,
+    ...typography.body2,
+    color: colors.success,
     fontWeight: '700',
-    color: colors.primary,
+    marginLeft: spacing.xs,
   },
   promotionTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+    ...typography.h6,
     color: colors.text,
-    lineHeight: 21,
     marginBottom: spacing.xs,
   },
   promotionDescription: {
-    fontSize: 14,
-    fontWeight: '400',
+    ...typography.body2,
     color: colors.textSecondary,
-    lineHeight: 20,
     marginBottom: spacing.sm,
   },
   promotionExpiry: {
-    fontSize: 12,
-    fontWeight: '400',
+    ...typography.caption,
     color: colors.textTertiary,
-    lineHeight: 17,
   },
-  
   notificationCard: {
     backgroundColor: colors.card,
-    borderRadius: 12,
+    borderRadius: borderRadius.lg,
     padding: spacing.lg,
-    marginBottom: spacing.lg, // Increased spacing between cards
-    ...shadows.sm, // Added subtle shadow
-    borderWidth: 1,
-    borderColor: colors.border,
-    position: 'relative',
+    marginBottom: spacing.md,
+    ...shadows.sm,
   },
   notificationHeader: {
     flexDirection: 'row',
@@ -548,33 +474,55 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.sm,
   },
+  notificationTypeChip: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.sm,
+  },
+  notificationTypeText: {
+    ...typography.caption,
+    color: colors.card,
+    fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+  notificationTime: {
+    ...typography.caption,
+    color: colors.textTertiary,
+  },
   notificationTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+    ...typography.body1,
     color: colors.text,
-    lineHeight: 21,
+    fontWeight: '600',
     marginBottom: spacing.xs,
   },
   notificationMessage: {
-    fontSize: 14,
-    fontWeight: '400',
+    ...typography.body2,
     color: colors.textSecondary,
-    lineHeight: 20,
+  },
+  educationCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    ...shadows.sm,
+  },
+  educationContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  educationText: {
+    flex: 1,
+    marginLeft: spacing.md,
+  },
+  educationTitle: {
+    ...typography.h6,
+    color: colors.text,
     marginBottom: spacing.xs,
   },
-  notificationTime: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: colors.textTertiary,
-    lineHeight: 17,
+  educationDescription: {
+    ...typography.body2,
+    color: colors.textSecondary,
   },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.primary,
-    position: 'absolute',
-    top: spacing.lg,
-    right: spacing.lg,
+  footerSpacing: {
+    height: spacing.xxl,
   },
 });

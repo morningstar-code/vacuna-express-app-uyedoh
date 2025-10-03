@@ -15,12 +15,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function RegisterScreen() {
+  const { signUp } = useAuth();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    businessName: '', // New required field
+    businessName: '', // Required field for onboarding
     email: '',
     phone: '',
     rnc: '',
@@ -68,22 +70,50 @@ export default function RegisterScreen() {
 
     setIsLoading(true);
     
-    // Simulate registration process
-    setTimeout(() => {
-      setIsLoading(false);
-      console.log('Registration data:', formData);
+    try {
+      console.log('Attempting registration for:', formData.email);
+      const { error } = await signUp(formData.email, formData.password, {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        business_name: formData.businessName,
+        rnc: formData.rnc,
+        cedula: formData.cedula,
+        address: formData.address,
+        phone: formData.phone,
+      });
       
-      Alert.alert(
-        'Registro Exitoso',
-        'Su cuenta ha sido creada exitosamente',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.replace('/(tabs)/(home)/'),
-          },
-        ]
-      );
-    }, 2000);
+      if (error) {
+        console.error('Registration error:', error);
+        let errorMessage = 'Error al crear la cuenta. Intente nuevamente.';
+        
+        if (error.message) {
+          if (error.message.includes('already registered')) {
+            errorMessage = 'Este correo electrónico ya está registrado.';
+          } else {
+            errorMessage = error.message;
+          }
+        }
+        
+        Alert.alert('Error', errorMessage);
+      } else {
+        console.log('Registration successful');
+        Alert.alert(
+          'Registro Exitoso',
+          'Su cuenta ha sido creada exitosamente. Por favor revise su correo electrónico para confirmar su cuenta antes de iniciar sesión.',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.replace('/auth/login'),
+            },
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Registration exception:', error);
+      Alert.alert('Error', 'Ocurrió un error inesperado. Intente nuevamente.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBackToLogin = () => {
@@ -131,7 +161,7 @@ export default function RegisterScreen() {
               </View>
             </View>
 
-            {/* New Required Business Name Field */}
+            {/* Required Business Name Field */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Nombre del Centro/Negocio *</Text>
               <TextInput

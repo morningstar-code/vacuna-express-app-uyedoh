@@ -1,5 +1,8 @@
 
-import React, { useState } from 'react';
+import { router } from 'expo-router';
+import { IconSymbol } from '@/components/IconSymbol';
+import React, { useState, useEffect } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -9,224 +12,299 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, commonStyles, spacing, borderRadius, shadows } from '@/styles/commonStyles';
-import { IconSymbol } from '@/components/IconSymbol';
-import { vaccines, getVaccinesByCategory, getInventoryForVaccine, getPromotionForVaccine } from '@/data/vaccines';
-import { Vaccine } from '@/types/vaccine';
-import { router } from 'expo-router';
 import FloatingCartButton from '@/components/FloatingCartButton';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 
-// Updated categories with "Todo" as the first option
-const categories = ['Todo', 'Universal', 'Niños', 'Adolescentes', 'Adultos'];
+interface Vaccine {
+  id: string;
+  name: string;
+  category: 'Universal' | 'Niños' | 'Adolescentes' | 'Adultos';
+  age_group: string;
+  description?: string;
+  base_price: number;
+  is_active: boolean;
+}
+
+interface VaccineDose {
+  id: string;
+  vaccine_id: string;
+  name: string;
+  description?: string;
+  sequence_number: number;
+}
+
+interface InventoryItem {
+  vaccine_id: string;
+  stock_level: number;
+  low_stock_threshold: number;
+  is_available: boolean;
+}
 
 export default function CatalogScreen() {
-  const [selectedCategory, setSelectedCategory] = useState('Todo');
+  const { profile } = useAuth();
+  const [vaccines, setVaccines] = useState<Vaccine[]>([]);
+  const [doses, setDoses] = useState<VaccineDose[]>([]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [cart, setCart] = useState<{[key: string]: number}>({});
+  const [selectedCategory, setSelectedCategory] = useState<string>('Todo');
+  const [cartItems, setCartItems] = useState<any[]>([]);
 
-  // Updated filtering logic to handle "Todo" category
-  const filteredVaccines = (() => {
-    let categoryVaccines;
-    if (selectedCategory === 'Todo') {
-      // Show all vaccines when "Todo" is selected
-      categoryVaccines = vaccines;
-    } else {
-      // Filter by specific category
-      categoryVaccines = getVaccinesByCategory(selectedCategory);
+  const categories = ['Todo', 'Universal', 'Niños', 'Adolescentes', 'Adultos'];
+
+  useEffect(() => {
+    if (profile) {
+      fetchVaccines();
+      fetchDoses();
+      fetchInventory();
     }
-    
-    // Apply search filter
-    return categoryVaccines.filter(vaccine =>
-      vaccine.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  })();
+  }, [profile]);
 
-  const addToCart = (vaccineId: string) => {
-    setCart(prev => ({
-      ...prev,
-      [vaccineId]: (prev[vaccineId] || 0) + 1
-    }));
-    Alert.alert('Agregado', 'Vacuna agregada al carrito');
+  const fetchVaccines = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('vaccines')
+        .select('*')
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) {
+        console.error('Error fetching vaccines:', error);
+      } else {
+        setVaccines(data || []);
+      }
+    } catch (error) {
+      console.error('Exception fetching vaccines:', error);
+    }
   };
 
-  // Calculate cart totals
-  const cartItemCount = Object.values(cart).reduce((sum, quantity) => sum + quantity, 0);
-  const cartTotal = Object.entries(cart).reduce((total, [vaccineId, quantity]) => {
+  const fetchDoses = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('vaccine_doses')
+        .select('*')
+        .order('vaccine_id, sequence_number');
+
+      if (error) {
+        console.error('Error fetching doses:', error);
+      } else {
+        setDoses(data || []);
+      }
+    } catch (error) {
+      console.error('Exception fetching doses:', error);
+    }
+  };
+
+  const fetchInventory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('inventory')
+        .select('*');
+
+      if (error) {
+        console.error('Error fetching inventory:', error);
+      } else {
+        setInventory(data || []);
+      }
+    } catch (error) {
+      console.error('Exception fetching inventory:', error);
+    }
+  };
+
+  const getFilteredVaccines = () => {
+    let filtered = vaccines;
+
+    // Filter by category
+    if (selectedCategory !== 'Todo') {
+      filtered = filtered.filter(vaccine => vaccine.category === selectedCategory);
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(vaccine =>
+        vaccine.name.toLowerCase().includes(query) ||
+        vaccine.age_group.toLowerCase().includes(query) ||
+        vaccine.category.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
+  };
+
+  const getVaccineDoses = (vaccineId: string) => {
+    return doses.filter(dose => dose.vaccine_id === vaccineId);
+  };
+
+  const getVaccineInventory = (vaccineId: string) => {
+    return inventory.find(item => item.vaccine_id === vaccineId);
+  };
+
+  const getStockStatus = (vaccineId: string) => {
+    const inventoryItem = getVaccineInventory(vaccineId);
+    if (!inventoryItem || !inventoryItem.is_available) {
+      return { status: 'Agotado', color: colors.error };
+    }
+    if (inventoryItem.stock_level <= inventoryItem.low_stock_threshold) {
+      return { status: 'Pocas unidades', color: colors.warning };
+    }
+    return { status: 'Disponible', color: colors.success };
+  };
+
+  const addToCart = (vaccineId: string, dose?: VaccineDose) => {
     const vaccine = vaccines.find(v => v.id === vaccineId);
-    const promotion = getPromotionForVaccine(vaccineId);
-    const price = vaccine?.price || 0;
-    const discountedPrice = promotion ? price * (1 - promotion.discountValue / 100) : price;
-    return total + (discountedPrice * quantity);
-  }, 0);
+    if (!vaccine) return;
+
+    const inventoryItem = getVaccineInventory(vaccineId);
+    if (!inventoryItem || !inventoryItem.is_available) {
+      Alert.alert('No disponible', 'Esta vacuna no está disponible actualmente');
+      return;
+    }
+
+    const newItem = {
+      id: `${vaccineId}-${dose?.id || 'default'}`,
+      vaccineId,
+      vaccineName: vaccine.name,
+      dose: dose?.name || 'Dosis única',
+      quantity: 1,
+      unitPrice: vaccine.base_price,
+      subtotal: vaccine.base_price,
+    };
+
+    setCartItems(prev => {
+      const existingIndex = prev.findIndex(item => item.id === newItem.id);
+      if (existingIndex >= 0) {
+        const updated = [...prev];
+        updated[existingIndex].quantity += 1;
+        updated[existingIndex].subtotal = updated[existingIndex].quantity * updated[existingIndex].unitPrice;
+        return updated;
+      }
+      return [...prev, newItem];
+    });
+
+    Alert.alert('Agregado', `${vaccine.name} agregado al carrito`);
+  };
 
   const renderVaccineCard = (vaccine: Vaccine) => {
-    const inventory = getInventoryForVaccine(vaccine.id);
-    const promotion = getPromotionForVaccine(vaccine.id);
-    const isLowStock = inventory && inventory.stockLevel <= inventory.lowStockThreshold;
-    const isOutOfStock = inventory && !inventory.isAvailable;
-    const originalPrice = vaccine.price || 0;
-    const discountedPrice = promotion ? originalPrice * (1 - promotion.discountValue / 100) : originalPrice;
+    const vaccineDoses = getVaccineDoses(vaccine.id);
+    const stockStatus = getStockStatus(vaccine.id);
+    const inventoryItem = getVaccineInventory(vaccine.id);
 
     return (
       <View key={vaccine.id} style={styles.vaccineCard}>
-        {/* Discount Badge - Positioned in top-right corner with proper spacing */}
-        {promotion && (
-          <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>-{promotion.discountValue}%</Text>
+        <View style={styles.vaccineHeader}>
+          <Text style={styles.vaccineName}>{vaccine.name}</Text>
+          <View style={[styles.stockBadge, { backgroundColor: stockStatus.color }]}>
+            <Text style={styles.stockBadgeText}>{stockStatus.status}</Text>
+          </View>
+        </View>
+        
+        <Text style={styles.vaccineCategory}>{vaccine.category}</Text>
+        <Text style={styles.vaccineAgeGroup}>{vaccine.age_group}</Text>
+        
+        {vaccine.description && (
+          <Text style={styles.vaccineDescription} numberOfLines={2}>
+            {vaccine.description}
+          </Text>
+        )}
+
+        <View style={styles.priceContainer}>
+          <Text style={styles.price}>RD$ {vaccine.base_price.toLocaleString()}</Text>
+        </View>
+
+        {vaccineDoses.length > 0 && (
+          <View style={styles.dosesContainer}>
+            <Text style={styles.dosesLabel}>Dosis disponibles:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {vaccineDoses.map((dose) => (
+                <TouchableOpacity
+                  key={dose.id}
+                  style={styles.doseChip}
+                  onPress={() => addToCart(vaccine.id, dose)}
+                  disabled={!inventoryItem?.is_available}
+                >
+                  <Text style={[
+                    styles.doseChipText,
+                    !inventoryItem?.is_available && styles.doseChipTextDisabled
+                  ]}>
+                    {dose.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         )}
 
-        {/* Main Card Content */}
-        <View style={styles.cardContent}>
-          {/* Header with vaccine info and price block */}
-          <View style={styles.vaccineHeader}>
-            <View style={styles.vaccineInfo}>
-              <Text style={styles.vaccineName}>{vaccine.name}</Text>
-              <Text style={styles.vaccineCategory}>{vaccine.category} • {vaccine.ageGroup}</Text>
-            </View>
-            
-            {/* Price Block - Right aligned with proper spacing from discount badge */}
-            <View style={styles.priceBlock}>
-              {promotion && originalPrice > 0 && (
-                <Text style={styles.originalPrice}>
-                  ${originalPrice.toFixed(2)}
-                </Text>
-              )}
-              <Text style={styles.discountedPrice}>
-                ${discountedPrice.toFixed(2)}
-              </Text>
-            </View>
-          </View>
-
-          {/* Doses Information */}
-          <View style={styles.dosesContainer}>
-            <Text style={styles.dosesLabel}>Dosis disponibles:</Text>
-            <View style={styles.dosesRow}>
-              {vaccine.doses.slice(0, 3).map((dose, index) => (
-                <View key={index} style={styles.doseChip}>
-                  <Text style={styles.doseText}>{dose.name}</Text>
-                </View>
-              ))}
-              {vaccine.doses.length > 3 && (
-                <View style={styles.doseChip}>
-                  <Text style={styles.doseText}>+{vaccine.doses.length - 3}</Text>
-                </View>
-              )}
-            </View>
-          </View>
-
-          {/* Stock Information */}
-          {inventory && (
-            <View style={styles.stockContainer}>
-              <Text style={styles.stockText}>
-                Stock: {inventory.stockLevel} unidades
-              </Text>
-              <Text style={[
-                styles.stockStatus,
-                { 
-                  color: isOutOfStock ? colors.error : isLowStock ? colors.warning : colors.success,
-                }
-              ]}>
-                {isOutOfStock ? 'Agotado' : isLowStock ? 'Pocas unidades' : 'Disponible'}
-              </Text>
-            </View>
-          )}
-
-          {/* Action Buttons */}
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={[
-                styles.addButton,
-                isOutOfStock ? styles.preOrderButton : styles.normalButton
-              ]}
-              onPress={() => addToCart(vaccine.id)}
-            >
-              <IconSymbol 
-                name={isOutOfStock ? "clock.fill" : "cart.fill"} 
-                size={16} 
-                color={colors.card} 
-              />
-              <Text style={styles.addButtonText}>
-                {isOutOfStock ? 'Pre-ordenar' : 'Agregar'}
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={styles.infoButton}
-              onPress={() => Alert.alert(
-                vaccine.name,
-                `Categoría: ${vaccine.category}\nEdad recomendada: ${vaccine.ageGroup}\nDosis disponibles: ${vaccine.doses.map(d => d.name).join(', ')}\n\nVacuna certificada y refrigerada para máxima efectividad.`,
-                [
-                  { text: 'Cerrar', style: 'cancel' },
-                  { text: 'Ver Más Info', onPress: () => router.push('/(tabs)/education') },
-                ]
-              )}
-            >
-              <IconSymbol name="info.circle" size={16} color={colors.primary} />
-            </TouchableOpacity>
-          </View>
-        </View>
+        <TouchableOpacity
+          style={[
+            styles.addButton,
+            !inventoryItem?.is_available && styles.addButtonDisabled
+          ]}
+          onPress={() => addToCart(vaccine.id)}
+          disabled={!inventoryItem?.is_available}
+        >
+          <Text style={[
+            styles.addButtonText,
+            !inventoryItem?.is_available && styles.addButtonTextDisabled
+          ]}>
+            {!inventoryItem?.is_available ? 'Agotado' : 'Agregar'}
+          </Text>
+        </TouchableOpacity>
       </View>
     );
   };
 
+  if (!profile) {
+    return null; // This shouldn't happen due to auth guard
+  }
+
   return (
     <SafeAreaView style={commonStyles.safeArea}>
-      <View style={commonStyles.container}>
-        {/* Header with Fixed Cart Button */}
+      <View style={styles.container}>
+        {/* Header */}
         <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <Text style={commonStyles.title}>Catálogo de Vacunas</Text>
-            
-            {/* Fixed Floating Cart Button in Header - Round, white background, gray border, blue icon */}
-            <TouchableOpacity
-              style={styles.headerCartButton}
-              onPress={() => router.push('/cart')}
-            >
-              <IconSymbol name="cart" size={24} color={colors.primary} />
-              {cartItemCount > 0 && (
-                <View style={styles.cartBadge}>
-                  <Text style={styles.cartBadgeText}>
-                    {cartItemCount > 99 ? '99+' : cartItemCount}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
-          
-          {/* Search Bar */}
-          <View style={styles.searchContainer}>
-            <IconSymbol name="magnifyingglass" size={20} color={colors.textSecondary} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Buscar vacunas..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholderTextColor={colors.textSecondary}
-            />
-          </View>
+          <Text style={styles.headerTitle}>Catálogo de Vacunas</Text>
+          <TouchableOpacity 
+            style={styles.cartButton}
+            onPress={() => router.push('/cart')}
+          >
+            <IconSymbol name="cart.fill" size={24} color={colors.primary} />
+            {cartItems.length > 0 && (
+              <View style={styles.cartBadge}>
+                <Text style={styles.cartBadgeText}>
+                  {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
 
-        {/* Category Tabs */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoryTabs}
-          contentContainerStyle={styles.categoryTabsContent}
-        >
-          {categories.map(category => (
+        {/* Search */}
+        <View style={styles.searchContainer}>
+          <IconSymbol name="magnifyingglass" size={20} color={colors.textSecondary} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Buscar por nombre, edad o dosis..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+
+        {/* Categories */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
+          {categories.map((category) => (
             <TouchableOpacity
               key={category}
               style={[
-                styles.categoryTab,
-                selectedCategory === category && styles.categoryTabActive
+                styles.categoryChip,
+                selectedCategory === category && styles.categoryChipActive
               ]}
               onPress={() => setSelectedCategory(category)}
             >
               <Text style={[
-                styles.categoryTabText,
-                selectedCategory === category && styles.categoryTabTextActive
+                styles.categoryChipText,
+                selectedCategory === category && styles.categoryChipTextActive
               ]}>
                 {category}
               </Text>
@@ -235,294 +313,230 @@ export default function CatalogScreen() {
         </ScrollView>
 
         {/* Vaccines List */}
-        <ScrollView 
-          style={styles.vaccinesList}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: cartItemCount > 0 ? 100 : 20 }}
-        >
-          {filteredVaccines.length > 0 ? (
-            filteredVaccines.map(renderVaccineCard)
-          ) : (
-            <View style={[commonStyles.center, { marginTop: 50 }]}>
-              <IconSymbol name="exclamationmark.triangle" size={48} color={colors.textSecondary} />
-              <Text style={[commonStyles.text, { marginTop: 16, textAlign: 'center' }]}>
-                {searchQuery ? `No se encontraron vacunas para "${searchQuery}"` : 'No hay vacunas disponibles'}
+        <ScrollView style={styles.vaccinesList} showsVerticalScrollIndicator={false}>
+          {getFilteredVaccines().length === 0 ? (
+            <View style={styles.emptyState}>
+              <IconSymbol name="magnifyingglass" size={48} color={colors.textTertiary} />
+              <Text style={styles.emptyStateTitle}>No se encontraron vacunas</Text>
+              <Text style={styles.emptyStateText}>
+                Intenta con otros términos de búsqueda o selecciona una categoría diferente
               </Text>
             </View>
+          ) : (
+            getFilteredVaccines().map(renderVaccineCard)
           )}
+          
+          {/* Footer spacing for tab bar */}
+          <View style={styles.footerSpacing} />
         </ScrollView>
-
-        {/* Floating Cart Button at Bottom - Always visible throughout catalog flow */}
-        <FloatingCartButton
-          itemCount={cartItemCount}
-          totalAmount={cartTotal}
-          onPress={() => router.push('/cart')}
-        />
       </View>
+
+      <FloatingCartButton />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
   },
-  headerContent: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+    backgroundColor: colors.card,
+    ...shadows.sm,
   },
-  // Fixed Header Cart Button - Round, white background, gray border, blue icon
-  headerCartButton: {
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  cartButton: {
     position: 'relative',
-    padding: 10,
-    borderRadius: 24, // Round floating button
-    backgroundColor: '#FFFFFF', // White background as specified
-    borderWidth: 1,
-    borderColor: '#E5E5EA', // Light gray border as specified
-    minWidth: 48,
-    minHeight: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    // Shadow for floating effect
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
+    padding: spacing.sm,
   },
   cartBadge: {
     position: 'absolute',
-    top: -2,
-    right: -2,
-    backgroundColor: '#FF3B30', // Red badge as specified
+    top: 0,
+    right: 0,
+    backgroundColor: colors.error,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 6,
   },
   cartBadgeText: {
-    color: '#FFFFFF',
+    color: colors.card,
     fontSize: 12,
     fontWeight: '700',
-    lineHeight: 16,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.card,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
+    marginHorizontal: spacing.lg,
+    marginVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    ...shadows.sm,
   },
   searchInput: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: spacing.md,
     fontSize: 16,
     color: colors.text,
   },
-  categoryTabs: {
-    maxHeight: 60,
+  categoriesContainer: {
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.lg,
   },
-  categoryTabsContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  categoryTab: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    marginRight: 12,
-    borderRadius: 20,
+  categoryChip: {
     backgroundColor: colors.card,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    marginRight: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  categoryTabActive: {
+  categoryChipActive: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
-  categoryTabText: {
+  categoryChipText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
     color: colors.text,
   },
-  categoryTabTextActive: {
+  categoryChipTextActive: {
     color: colors.card,
   },
   vaccinesList: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
   },
-
-  // Updated Product Card Layout with consistent icons and professional cards with shadows
   vaccineCard: {
     backgroundColor: colors.card,
-    borderRadius: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    position: 'relative',
-    overflow: 'visible',
-    ...shadows.sm, // Light shadow for professional look
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    ...shadows.md,
   },
-  
-  // Discount Badge - Fixed positioning with proper spacing
-  discountBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: '#19C37D',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    zIndex: 2,
-    minHeight: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  discountText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-
-  // Card Content with proper padding
-  cardContent: {
-    padding: 14,
-    paddingTop: 16, // Extra space for discount badge
-  },
-  
-  // Header with vaccine info and price
   vaccineHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
-    paddingRight: 60, // Space for discount badge
+    marginBottom: spacing.sm,
   },
-  vaccineInfo: {
-    flex: 1,
-    paddingRight: 12,
-  },
-  
-  // Typography according to specifications
   vaccineName: {
-    fontSize: 17, // 16-17sp
+    fontSize: 18,
     fontWeight: '700',
     color: colors.text,
-    lineHeight: 22,
-    marginBottom: 2,
-  },
-  vaccineCategory: {
-    fontSize: 14, // 13-14sp
-    fontWeight: '500',
-    color: '#6B7280', // Muted color as specified
-    lineHeight: 18,
-  },
-  
-  // Price Block - Right aligned with proper typography
-  priceBlock: {
-    alignItems: 'flex-end',
-    justifyContent: 'flex-start',
-    minWidth: 80,
-  },
-  originalPrice: {
-    fontSize: 13, // 12-13sp as specified
-    color: '#8A8A8E',
-    textDecorationLine: 'line-through',
-    marginBottom: 2,
-    lineHeight: 16,
-  },
-  discountedPrice: {
-    fontSize: 16, // Exactly 16sp as specified (NOT larger)
-    fontWeight: '700',
-    color: '#0B60D1', // Primary color as specified
-    lineHeight: 20,
-  },
-  
-  // Doses section
-  dosesContainer: {
-    marginBottom: 12,
-  },
-  dosesLabel: {
-    fontSize: 13, // 12-13sp for doses/stock
-    color: colors.textSecondary,
-    marginBottom: 6,
-  },
-  dosesRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  doseChip: {
-    backgroundColor: colors.background,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  doseText: {
-    fontSize: 12,
-    color: colors.text,
-    fontWeight: '500',
-  },
-
-  // Stock information
-  stockContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  stockText: {
-    fontSize: 13, // 12-13sp for stock info
-    color: colors.textSecondary,
-  },
-  stockStatus: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-
-  // Action buttons
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 8,
-    minHeight: 44, // Accessibility requirement ≥ 44dp
-  },
-  addButton: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 8,
-    gap: 6,
-    minHeight: 44, // Accessibility requirement
+    marginRight: spacing.md,
   },
-  normalButton: {
-    backgroundColor: colors.primary,
+  stockBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.sm,
   },
-  preOrderButton: {
-    backgroundColor: colors.warning,
-  },
-  addButtonText: {
-    fontSize: 14,
+  stockBadgeText: {
+    fontSize: 12,
     fontWeight: '600',
     color: colors.card,
   },
-  infoButton: {
-    width: 44, // Accessibility requirement ≥ 44dp
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-    borderRadius: 8,
+  vaccineCategory: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
+    marginBottom: spacing.xs,
+  },
+  vaccineAgeGroup: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
+  },
+  vaccineDescription: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: spacing.md,
+  },
+  priceContainer: {
+    marginBottom: spacing.md,
+  },
+  price: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  dosesContainer: {
+    marginBottom: spacing.md,
+  },
+  dosesLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: spacing.sm,
+  },
+  doseChip: {
+    backgroundColor: colors.backgroundSecondary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.sm,
+    marginRight: spacing.sm,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  doseChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  doseChipTextDisabled: {
+    color: colors.textTertiary,
+  },
+  addButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+  },
+  addButtonDisabled: {
+    backgroundColor: colors.textTertiary,
+  },
+  addButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.card,
+  },
+  addButtonTextDisabled: {
+    color: colors.card,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: spacing.xxxl,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  footerSpacing: {
+    height: spacing.xxl,
   },
 });

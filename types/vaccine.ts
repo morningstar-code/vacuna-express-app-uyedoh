@@ -51,6 +51,26 @@ export interface User {
   createdAt: string;
 }
 
+// Updated Profile interface to match Supabase schema
+export interface Profile {
+  id: string;
+  user_id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  business_name: string;
+  rnc: string;
+  cedula: string;
+  address: string;
+  phone: string;
+  role: 'doctor' | 'admin' | 'staff';
+  avatar_url?: string;
+  is_active: boolean;
+  onboarding_completed: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Invoice {
   id: string;
   orderId: string;

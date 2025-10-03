@@ -1,3 +1,4 @@
+
 import "react-native-reanimated";
 import React, { useEffect } from "react";
 import { useFonts } from "expo-font";
@@ -14,14 +15,14 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
-import { Button } from "@/components/button";
 import { WidgetProvider } from "@/contexts/WidgetContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
-  initialRouteName: "auth/login",
+  initialRouteName: "index",
 };
 
 export default function RootLayout() {
@@ -77,62 +78,77 @@ export default function RootLayout() {
       notification: "rgb(255, 69, 58)", // System Red (Dark Mode)
     },
   };
+  
   return (
     <>
       <StatusBar style="auto" animated />
-        <ThemeProvider
-          value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
-        >
+      <ThemeProvider
+        value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
+      >
+        <AuthProvider>
           <WidgetProvider>
             <GestureHandlerRootView>
-            <Stack>
-              {/* Authentication Screens */}
-              <Stack.Screen name="auth/login" options={{ headerShown: false }} />
-              <Stack.Screen name="auth/register" options={{ headerShown: false }} />
-              
-              {/* Main app with tabs */}
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              
-              {/* Additional Screens */}
-              <Stack.Screen name="vaccination-records" options={{ headerShown: false }} />
-              <Stack.Screen name="appointments" options={{ headerShown: false }} />
-              <Stack.Screen name="payment-methods" options={{ headerShown: false }} />
-              <Stack.Screen name="subscriptions" options={{ headerShown: false }} />
-              <Stack.Screen name="family-profiles" options={{ headerShown: false }} />
-              <Stack.Screen name="corporate-dashboard" options={{ headerShown: false }} />
-              <Stack.Screen name="loyalty-program" options={{ headerShown: false }} />
-              <Stack.Screen name="referral-program" options={{ headerShown: false }} />
+              <Stack>
+                {/* Root index that handles routing logic */}
+                <Stack.Screen name="index" options={{ headerShown: false }} />
+                
+                {/* Authentication Screens */}
+                <Stack.Screen name="auth/login" options={{ headerShown: false }} />
+                <Stack.Screen name="auth/register" options={{ headerShown: false }} />
+                
+                {/* Onboarding */}
+                <Stack.Screen name="onboarding/wizard" options={{ headerShown: false }} />
+                
+                {/* Main app with tabs */}
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                
+                {/* Additional Screens */}
+                <Stack.Screen name="vaccination-records" options={{ headerShown: false }} />
+                <Stack.Screen name="appointments" options={{ headerShown: false }} />
+                <Stack.Screen name="payment-methods" options={{ headerShown: false }} />
+                <Stack.Screen name="subscriptions" options={{ headerShown: false }} />
+                <Stack.Screen name="family-profiles" options={{ headerShown: false }} />
+                <Stack.Screen name="corporate-dashboard" options={{ headerShown: false }} />
+                <Stack.Screen name="loyalty-program" options={{ headerShown: false }} />
+                <Stack.Screen name="referral-program" options={{ headerShown: false }} />
+                <Stack.Screen name="cart" options={{ headerShown: false }} />
+                <Stack.Screen name="delivery-tracking" options={{ headerShown: false }} />
+                <Stack.Screen name="promotions" options={{ headerShown: false }} />
 
-              {/* Modal Demo Screens */}
-              <Stack.Screen
-                name="modal"
-                options={{
-                  presentation: "modal",
-                  title: "Standard Modal",
-                }}
-              />
-              <Stack.Screen
-                name="formsheet"
-                options={{
-                  presentation: "formSheet",
-                  title: "Form Sheet Modal",
-                  sheetGrabberVisible: true,
-                  sheetAllowedDetents: [0.5, 0.8, 1.0],
-                  sheetCornerRadius: 20,
-                }}
-              />
-              <Stack.Screen
-                name="transparent-modal"
-                options={{
-                  presentation: "transparentModal",
-                  headerShown: false,
-                }}
-              />
-            </Stack>
-            <SystemBars style={"auto"} />
+                {/* Admin Screens */}
+                <Stack.Screen name="admin" options={{ headerShown: false }} />
+
+                {/* Modal Demo Screens */}
+                <Stack.Screen
+                  name="modal"
+                  options={{
+                    presentation: "modal",
+                    title: "Standard Modal",
+                  }}
+                />
+                <Stack.Screen
+                  name="formsheet"
+                  options={{
+                    presentation: "formSheet",
+                    title: "Form Sheet Modal",
+                    sheetGrabberVisible: true,
+                    sheetAllowedDetents: [0.5, 0.8, 1.0],
+                    sheetCornerRadius: 20,
+                  }}
+                />
+                <Stack.Screen
+                  name="transparent-modal"
+                  options={{
+                    presentation: "transparentModal",
+                    headerShown: false,
+                  }}
+                />
+              </Stack>
+              <SystemBars style={"auto"} />
             </GestureHandlerRootView>
           </WidgetProvider>
-        </ThemeProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </>
   );
 }

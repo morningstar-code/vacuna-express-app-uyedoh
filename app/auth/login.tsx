@@ -15,8 +15,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { colors, commonStyles, buttonStyles } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginScreen() {
+  const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -29,14 +31,35 @@ export default function LoginScreen() {
 
     setIsLoading(true);
     
-    // Simulate login process
-    setTimeout(() => {
-      setIsLoading(false);
-      console.log('Login attempt:', { email, password });
+    try {
+      console.log('Attempting login for:', email);
+      const { error } = await signIn(email, password);
       
-      // For demo purposes, accept any email/password
-      router.replace('/(tabs)/(home)/');
-    }, 1500);
+      if (error) {
+        console.error('Login error:', error);
+        let errorMessage = 'Error al iniciar sesión. Verifique sus credenciales.';
+        
+        if (error.message) {
+          if (error.message.includes('Email not confirmed')) {
+            errorMessage = 'Por favor confirme su correo electrónico antes de iniciar sesión.';
+          } else if (error.message.includes('Invalid login credentials')) {
+            errorMessage = 'Credenciales inválidas. Verifique su correo y contraseña.';
+          } else {
+            errorMessage = error.message;
+          }
+        }
+        
+        Alert.alert('Error', errorMessage);
+      } else {
+        console.log('Login successful');
+        // Navigation will be handled by the auth context and root index
+      }
+    } catch (error) {
+      console.error('Login exception:', error);
+      Alert.alert('Error', 'Ocurrió un error inesperado. Intente nuevamente.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleRegister = () => {
