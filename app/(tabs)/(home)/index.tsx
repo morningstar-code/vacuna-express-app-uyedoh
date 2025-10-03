@@ -61,29 +61,31 @@ export default function HomeScreen() {
         contentContainerStyle={{ paddingBottom: 32 }} // 32dp padding at bottom
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
+        {/* Header with notification icon next to greeting */}
         <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <Text style={styles.greeting}>👋 Hola, {doctorName}</Text>
-            <Text style={styles.welcomeText}>Bienvenido a VacunaExpress</Text>
+          <View style={styles.greetingContainer}>
+            <View style={styles.greetingText}>
+              <Text style={styles.greeting}>👋 Hola, {doctorName}</Text>
+              <Text style={styles.welcomeText}>Bienvenido a VacunaExpress</Text>
+            </View>
+            
+            <TouchableOpacity 
+              style={styles.notificationButton}
+              onPress={handleNotifications}
+            >
+              <IconSymbol name="bell.fill" size={24} color={colors.text} />
+              {sampleNotifications.filter(n => !n.isRead).length > 0 && (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationBadgeText}>
+                    {sampleNotifications.filter(n => !n.isRead).length}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
-          
-          <TouchableOpacity 
-            style={styles.notificationButton}
-            onPress={handleNotifications}
-          >
-            <IconSymbol name="bell.fill" size={24} color={colors.text} />
-            {sampleNotifications.filter(n => !n.isRead).length > 0 && (
-              <View style={styles.notificationBadge}>
-                <Text style={styles.notificationBadgeText}>
-                  {sampleNotifications.filter(n => !n.isRead).length}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
         </View>
 
-        {/* Quick Actions */}
+        {/* Quick Actions - 2 per row, smaller and uniform */}
         <View style={styles.section}>
           <View style={styles.quickActions}>
             <TouchableOpacity 
@@ -91,7 +93,7 @@ export default function HomeScreen() {
               onPress={() => handleQuickAction('/(tabs)/catalog')}
             >
               <View style={styles.quickActionIcon}>
-                <IconSymbol name="list.bullet.rectangle" size={24} color={colors.primary} />
+                <IconSymbol name="list.bullet.rectangle" size={20} color={colors.primary} />
               </View>
               <Text style={styles.quickActionTitle}>Catálogo</Text>
               <Text style={styles.quickActionSubtitle}>Explorar vacunas</Text>
@@ -102,7 +104,7 @@ export default function HomeScreen() {
               onPress={() => handleQuickAction('/(tabs)/orders')}
             >
               <View style={styles.quickActionIcon}>
-                <IconSymbol name="shippingbox.fill" size={24} color={colors.primary} />
+                <IconSymbol name="shippingbox.fill" size={20} color={colors.primary} />
               </View>
               <Text style={styles.quickActionTitle}>Pedidos</Text>
               <Text style={styles.quickActionSubtitle}>Seguir entregas</Text>
@@ -113,7 +115,7 @@ export default function HomeScreen() {
               onPress={() => handleQuickAction('/promotions')}
             >
               <View style={styles.quickActionIcon}>
-                <IconSymbol name="tag.fill" size={24} color={colors.primary} />
+                <IconSymbol name="tag.fill" size={20} color={colors.primary} />
               </View>
               <Text style={styles.quickActionTitle}>Ofertas</Text>
               <Text style={styles.quickActionSubtitle}>Descuentos activos</Text>
@@ -124,7 +126,7 @@ export default function HomeScreen() {
               onPress={() => handleQuickAction('/(tabs)/profile')}
             >
               <View style={styles.quickActionIcon}>
-                <IconSymbol name="person.fill" size={24} color={colors.primary} />
+                <IconSymbol name="person.fill" size={20} color={colors.primary} />
               </View>
               <Text style={styles.quickActionTitle}>Perfil</Text>
               <Text style={styles.quickActionSubtitle}>Mi cuenta</Text>
@@ -145,7 +147,7 @@ export default function HomeScreen() {
               onPress={() => handleCategoryPress('Universal')}
             >
               <View style={styles.categoryIcon}>
-                <IconSymbol name="globe" size={28} color={colors.primary} />
+                <IconSymbol name="globe" size={24} color={colors.primary} />
               </View>
               <Text style={styles.categoryTitle}>Universal</Text>
               <Text style={styles.categorySubtitle}>Todas las edades</Text>
@@ -156,7 +158,7 @@ export default function HomeScreen() {
               onPress={() => handleCategoryPress('Niños')}
             >
               <View style={styles.categoryIcon}>
-                <IconSymbol name="figure.child" size={28} color={colors.primary} />
+                <IconSymbol name="figure.child" size={24} color={colors.primary} />
               </View>
               <Text style={styles.categoryTitle}>Niños</Text>
               <Text style={styles.categorySubtitle}>Pediatría</Text>
@@ -167,7 +169,7 @@ export default function HomeScreen() {
               onPress={() => handleCategoryPress('Adolescentes')}
             >
               <View style={styles.categoryIcon}>
-                <IconSymbol name="figure.walk" size={28} color={colors.primary} />
+                <IconSymbol name="figure.walk" size={24} color={colors.primary} />
               </View>
               <Text style={styles.categoryTitle}>Adolescentes</Text>
               <Text style={styles.categorySubtitle}>11-18 años</Text>
@@ -178,7 +180,7 @@ export default function HomeScreen() {
               onPress={() => handleCategoryPress('Adultos')}
             >
               <View style={styles.categoryIcon}>
-                <IconSymbol name="person.2.fill" size={28} color={colors.primary} />
+                <IconSymbol name="person.2.fill" size={24} color={colors.primary} />
               </View>
               <Text style={styles.categoryTitle}>Adultos</Text>
               <Text style={styles.categorySubtitle}>18+ años</Text>
@@ -253,15 +255,17 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
     backgroundColor: colors.background,
-    marginBottom: spacing.md,
+    marginBottom: spacing.xl, // Increased margin between sections
   },
-  headerContent: {
+  greetingContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  greetingText: {
     flex: 1,
   },
   greeting: {
@@ -280,6 +284,7 @@ const styles = StyleSheet.create({
   notificationButton: {
     position: 'relative',
     padding: spacing.sm,
+    marginLeft: spacing.md,
   },
   notificationBadge: {
     position: 'absolute',
@@ -299,7 +304,7 @@ const styles = StyleSheet.create({
   },
   
   section: {
-    marginBottom: spacing.lg, // 12-16dp between sections
+    marginBottom: spacing.xl, // Increased margin between sections (20-24dp)
     paddingHorizontal: spacing.lg,
   },
   sectionHeader: {
@@ -309,10 +314,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16, // Reduced from 18 to 16 for subtitles
     fontWeight: '600',
     color: colors.text,
-    lineHeight: 25, // 1.4 line height
+    lineHeight: 22, // 1.4 line height
   },
   seeAllButton: {
     flexDirection: 'row',
@@ -326,6 +331,7 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   
+  // Updated Quick Actions - 2 per row, smaller and uniform
   quickActions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -334,17 +340,18 @@ const styles = StyleSheet.create({
   },
   quickActionCard: {
     backgroundColor: colors.card,
-    borderRadius: 14, // 12-14dp radius
-    padding: spacing.lg,
+    borderRadius: 12,
+    padding: spacing.md, // Reduced padding for smaller cards
     alignItems: 'center',
-    width: '47%',
-    ...shadows.sm, // Light shadow
+    width: '47%', // 2 per row
+    ...shadows.sm,
     borderWidth: 1,
     borderColor: colors.border,
+    minHeight: 100, // Smaller uniform height
   },
   quickActionIcon: {
-    width: 48,
-    height: 48,
+    width: 40, // Reduced from 48
+    height: 40,
     borderRadius: borderRadius.lg,
     backgroundColor: colors.primary + '15',
     alignItems: 'center',
@@ -352,18 +359,19 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   quickActionTitle: {
-    fontSize: 15, // 15sp bold black
+    fontSize: 14, // Reduced from 15
     fontWeight: '700',
     color: colors.text,
-    lineHeight: 21, // 1.4 line height
+    lineHeight: 19,
     marginBottom: 2,
+    textAlign: 'center',
   },
   quickActionSubtitle: {
-    fontSize: 13, // 13sp gray
+    fontSize: 12, // Reduced from 13
     fontWeight: '400',
     color: '#6B7280',
     textAlign: 'center',
-    lineHeight: 18, // 1.4 line height
+    lineHeight: 16,
   },
   
   categoriesContainer: {
@@ -371,18 +379,18 @@ const styles = StyleSheet.create({
   },
   categoryCard: {
     backgroundColor: colors.card,
-    borderRadius: 14, // 12-14dp radius
-    padding: spacing.lg,
+    borderRadius: 12,
+    padding: spacing.md, // Reduced padding
     alignItems: 'center',
-    width: 140,
+    width: 120, // Reduced from 140
     marginRight: spacing.md,
-    ...shadows.sm, // Light shadow
+    ...shadows.sm,
     borderWidth: 1,
     borderColor: colors.border,
   },
   categoryIcon: {
-    width: 56,
-    height: 56,
+    width: 48, // Reduced from 56
+    height: 48,
     borderRadius: borderRadius.xl,
     backgroundColor: colors.primary + '15',
     alignItems: 'center',
@@ -390,26 +398,26 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   categoryTitle: {
-    fontSize: 15, // 15sp bold black
+    fontSize: 14, // Reduced from 15
     fontWeight: '700',
     color: colors.text,
-    lineHeight: 21, // 1.4 line height
+    lineHeight: 19,
     marginBottom: 2,
     textAlign: 'center',
   },
   categorySubtitle: {
-    fontSize: 13, // 13sp gray
+    fontSize: 12, // Reduced from 13
     fontWeight: '400',
     color: '#6B7280',
     textAlign: 'center',
-    lineHeight: 18, // 1.4 line height
+    lineHeight: 16,
   },
   
   promotionCard: {
     backgroundColor: colors.card,
-    borderRadius: 14, // 12-14dp radius
+    borderRadius: 12,
     padding: spacing.lg,
-    marginBottom: spacing.md, // 12-16dp vertical padding
+    marginBottom: spacing.md,
     ...shadows.sm,
     borderWidth: 1,
     borderColor: colors.border,
@@ -437,31 +445,31 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   promotionTitle: {
-    fontSize: 15, // 15sp bold black
+    fontSize: 15,
     fontWeight: '700',
     color: colors.text,
-    lineHeight: 21, // 1.4 line height
+    lineHeight: 21,
     marginBottom: spacing.xs,
   },
   promotionDescription: {
     fontSize: 14,
     fontWeight: '400',
     color: colors.textSecondary,
-    lineHeight: 20, // 1.4 line height
+    lineHeight: 20,
     marginBottom: spacing.sm,
   },
   promotionExpiry: {
     fontSize: 12,
     fontWeight: '400',
     color: colors.textTertiary,
-    lineHeight: 17, // 1.4 line height
+    lineHeight: 17,
   },
   
   notificationCard: {
     backgroundColor: colors.card,
-    borderRadius: 14, // 12-14dp radius
+    borderRadius: 12,
     padding: spacing.lg,
-    marginBottom: spacing.md, // 12-16dp vertical padding
+    marginBottom: spacing.md,
     ...shadows.sm,
     borderWidth: 1,
     borderColor: colors.border,
@@ -474,24 +482,24 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   notificationTitle: {
-    fontSize: 15, // 15sp bold black
+    fontSize: 15,
     fontWeight: '700',
     color: colors.text,
-    lineHeight: 21, // 1.4 line height
+    lineHeight: 21,
     marginBottom: spacing.xs,
   },
   notificationMessage: {
     fontSize: 14,
     fontWeight: '400',
     color: colors.textSecondary,
-    lineHeight: 20, // 1.4 line height
+    lineHeight: 20,
     marginBottom: spacing.xs,
   },
   notificationTime: {
     fontSize: 12,
     fontWeight: '400',
     color: colors.textTertiary,
-    lineHeight: 17, // 1.4 line height
+    lineHeight: 17,
   },
   unreadDot: {
     width: 8,

@@ -220,11 +220,14 @@ export default function NotificationsScreen() {
       <View style={commonStyles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <View style={[commonStyles.row, commonStyles.spaceBetween]}>
+          <View style={styles.headerTop}>
             <Text style={commonStyles.title}>Notificaciones</Text>
             {unreadNotifications.length > 0 && (
-              <TouchableOpacity onPress={markAllAsRead}>
-                <Text style={[commonStyles.text, { color: colors.primary }]}>
+              <TouchableOpacity 
+                onPress={markAllAsRead}
+                style={styles.markAllButton}
+              >
+                <Text style={styles.markAllText}>
                   Marcar todas como leídas
                 </Text>
               </TouchableOpacity>
@@ -285,12 +288,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start', // Changed to flex-start to prevent text cutoff
+    marginBottom: 16,
+    minHeight: 44, // Ensure minimum height for touch target
+  },
+  markAllButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: colors.primary + '10',
+    minHeight: 36, // Ensure proper touch target
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0, // Prevent shrinking
+    maxWidth: '50%', // Prevent taking too much space
+  },
+  markAllText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
   tabSelector: {
     flexDirection: 'row',
     backgroundColor: colors.background,
     borderRadius: 12,
     padding: 4,
-    marginTop: 16,
   },
   tab: {
     flex: 1,
