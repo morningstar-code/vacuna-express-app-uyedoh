@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
-  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/IconSymbol';
@@ -17,8 +16,6 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-
-const { width: screenWidth } = Dimensions.get('window');
 
 interface FloatingCartButtonProps {
   itemCount: number;
@@ -58,7 +55,7 @@ export default function FloatingCartButton({
     if (onPress) {
       onPress();
     } else {
-      // Navigate to cart/checkout screen
+      // Navigate directly to cart screen (no modal)
       router.push('/cart');
     }
   };
@@ -79,7 +76,7 @@ export default function FloatingCartButton({
             <View style={styles.leftSection}>
               <IconSymbol name="cart.fill" size={20} color="#FFFFFF" />
               <Text style={styles.itemText}>
-                Carrito ({itemCount} {itemCount === 1 ? 'item' : 'items'})
+                🛒 Carrito ({itemCount})
               </Text>
             </View>
             
@@ -99,21 +96,22 @@ export default function FloatingCartButton({
 const styles = StyleSheet.create({
   safeArea: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 90 : 80, // Above tab bar
+    bottom: Platform.OS === 'ios' ? 90 : 80, // Above tab bar with proper spacing
     left: 0,
     right: 0,
     zIndex: 999,
     pointerEvents: 'box-none',
   },
   container: {
-    marginHorizontal: 16,
+    marginHorizontal: 16, // 16dp margins as specified
     marginBottom: 8,
   },
   button: {
-    backgroundColor: '#007BFF',
-    borderRadius: 25,
+    backgroundColor: '#007BFF', // Primary blue as specified
+    borderRadius: 24, // 24dp radius as specified
     paddingHorizontal: 20,
     paddingVertical: 16,
+    minHeight: 56, // Ensure good touch target
     ...Platform.select({
       ios: {
         shadowColor: '#000',
